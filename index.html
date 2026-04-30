@@ -1,1350 +1,1001 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PO GL Coding Assistant — Roxborough Communities</title>
-  <style>
-    :root {
-      --gold: #D4A84B;
-      --gold-light: #f0c96a;
-      --gold-dark: #a07830;
-      --navy: #1a2640;
-      --navy-light: #253450;
-      --bg: #f4f5f7;
-      --white: #ffffff;
-      --border: #dde1e8;
-      --text: #1e2630;
-      --text-muted: #6b7585;
-      --success: #22c55e;
-      --warning: #f59e0b;
-      --error: #ef4444;
-      --radius: 10px;
-      --shadow: 0 2px 12px rgba(0,0,0,0.09);
-      --shadow-lg: 0 6px 30px rgba(0,0,0,0.13);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
-
-    /* ── Header ── */
-    header {
-      background: var(--navy);
-      color: var(--white);
-      padding: 0 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 64px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .header-brand {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .header-logo {
-      width: 38px;
-      height: 38px;
-      background: var(--gold);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 18px;
-      color: var(--navy);
-      letter-spacing: -1px;
-    }
-
-    .header-title h1 {
-      font-size: 17px;
-      font-weight: 700;
-      letter-spacing: 0.01em;
-    }
-
-    .header-title p {
-      font-size: 12px;
-      color: rgba(255,255,255,0.55);
-      margin-top: 1px;
-    }
-
-    .header-badge {
-      background: rgba(212,168,75,0.18);
-      border: 1px solid rgba(212,168,75,0.4);
-      color: var(--gold-light);
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 10px;
-      border-radius: 20px;
-      letter-spacing: 0.03em;
-    }
-
-    /* ── Layout ── */
-    .container {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 28px 24px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      align-items: start;
-    }
-
-    @media (max-width: 900px) {
-      .grid { grid-template-columns: 1fr; }
-    }
-
-    /* ── Cards ── */
-    .card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-
-    .card-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .card-header h2 {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--navy);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card-header h2 .icon {
-      width: 26px;
-      height: 26px;
-      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-      border-radius: 6px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-    }
-
-    .card-body { padding: 20px; }
-
-    /* ── Form ── */
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-
-    .form-row.full { grid-template-columns: 1fr; }
-
-    .form-group { display: flex; flex-direction: column; gap: 5px; }
-
-    label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    input, select, textarea {
-      border: 1.5px solid var(--border);
-      border-radius: 7px;
-      padding: 9px 12px;
-      font-size: 14px;
-      color: var(--text);
-      background: var(--white);
-      transition: border-color 0.15s, box-shadow 0.15s;
-      font-family: inherit;
-      width: 100%;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--gold);
-      box-shadow: 0 0 0 3px rgba(212,168,75,0.15);
-    }
-
-    textarea { resize: vertical; min-height: 80px; }
-
-    select { cursor: pointer; appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7585' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 34px;
-    }
-
-    /* ── Buttons ── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      padding: 10px 18px;
-      border-radius: 8px;
-      font-size: 13.5px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all 0.15s;
-      font-family: inherit;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-      color: var(--navy);
-    }
-
-    .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(212,168,75,0.4); }
-    .btn-primary:active { transform: translateY(0); }
-
-    .btn-secondary {
-      background: var(--navy);
-      color: var(--white);
-    }
-
-    .btn-secondary:hover { background: var(--navy-light); transform: translateY(-1px); }
-
-    .btn-outline {
-      background: transparent;
-      color: var(--navy);
-      border: 1.5px solid var(--border);
-    }
-
-    .btn-outline:hover { border-color: var(--gold); color: var(--gold-dark); }
-
-    .btn-danger { background: var(--error); color: white; }
-    .btn-danger:hover { filter: brightness(0.9); }
-
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
-
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 4px;
-    }
-
-    /* ── GL Suggestion Output ── */
-    .suggestion-box {
-      background: linear-gradient(135deg, #fefdf6, #fffbf0);
-      border: 1.5px solid rgba(212,168,75,0.35);
-      border-radius: 9px;
-      padding: 16px;
-      margin-bottom: 16px;
-      display: none;
-    }
-
-    .suggestion-box.visible { display: block; }
-
-    .suggestion-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-
-    .suggestion-header h3 {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--navy);
-    }
-
-    .confidence-badge {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 20px;
-    }
-
-    .confidence-high { background: #dcfce7; color: #166534; }
-    .confidence-medium { background: #fef9c3; color: #854d0e; }
-    .confidence-low { background: #fee2e2; color: #991b1b; }
-
-    .gl-line {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: all 0.12s;
-    }
-
-    .gl-line:hover { border-color: var(--gold); background: #fffbf2; }
-    .gl-line.selected { border-color: var(--gold); background: linear-gradient(135deg,#fffbf0,#fef4d6); box-shadow: 0 0 0 2px rgba(212,168,75,0.2); }
-
-    .gl-code-chip {
-      background: var(--navy);
-      color: var(--gold-light);
-      font-size: 12px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 5px;
-      white-space: nowrap;
-      font-family: 'SF Mono', 'Consolas', monospace;
-    }
-
-    .gl-line-info { flex: 1; min-width: 0; }
-    .gl-line-name { font-size: 13.5px; font-weight: 600; color: var(--text); }
-    .gl-line-reason { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
-
-    .gl-select-indicator {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      border: 2px solid var(--border);
-      flex-shrink: 0;
-      transition: all 0.12s;
-    }
-
-    .gl-line.selected .gl-select-indicator {
-      background: var(--gold);
-      border-color: var(--gold);
-    }
-
-    .ai-reasoning {
-      background: rgba(26,38,64,0.04);
-      border-radius: 7px;
-      padding: 10px 12px;
-      font-size: 12.5px;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-top: 10px;
-    }
-
-    /* ── Loading spinner ── */
-    .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(26,38,64,0.2);
-      border-top-color: var(--navy);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: none;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── PO Preview ── */
-    #po-preview { display: none; }
-
-    .po-document {
-      border: 2px solid var(--border);
-      border-radius: 9px;
-      overflow: hidden;
-      font-size: 13px;
-    }
-
-    .po-doc-header {
-      background: var(--navy);
-      color: white;
-      padding: 16px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .po-doc-header .po-company { font-size: 15px; font-weight: 700; }
-    .po-doc-header .po-tagline { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; }
-    .po-doc-header .po-number-label { text-align: right; }
-    .po-doc-header .po-number-val { font-size: 20px; font-weight: 800; color: var(--gold-light); font-family: monospace; }
-    .po-doc-header .po-date { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
-
-    .po-meta {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-    }
-
-    .po-meta-block {
-      padding: 14px 20px;
-      border-right: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .po-meta-block:last-child { border-right: none; }
-    .po-meta-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 4px; }
-    .po-meta-value { font-size: 14px; font-weight: 600; color: var(--navy); }
-
-    .po-table { width: 100%; border-collapse: collapse; }
-    .po-table th {
-      background: #f8f9fb;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      padding: 10px 20px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .po-table td {
-      padding: 12px 20px;
-      border-bottom: 1px solid var(--border);
-      font-size: 13px;
-    }
-
-    .po-table tr:last-child td { border-bottom: none; }
-
-    .po-total-row {
-      background: linear-gradient(135deg,#fefdf6,#fff8e8);
-      padding: 14px 20px;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 16px;
-      border-top: 2px solid var(--gold);
-    }
-
-    .po-total-label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
-    .po-total-amount { font-size: 22px; font-weight: 800; color: var(--navy); }
-
-    .po-approval {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      border-top: 1px solid var(--border);
-    }
-
-    .po-sig-block {
-      padding: 14px 20px;
-      border-right: 1px solid var(--border);
-    }
-
-    .po-sig-block:last-child { border-right: none; }
-    .po-sig-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
-    .po-sig-line { border-bottom: 1px solid var(--text); margin-top: 22px; margin-bottom: 4px; }
-    .po-sig-name { font-size: 11px; color: var(--text-muted); }
-
-    /* ── GL Reference Table ── */
-    .gl-ref-section {
-      margin-top: 24px;
-    }
-
-    .gl-ref-toggle {
-      width: 100%;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--navy);
-      box-shadow: var(--shadow);
-      transition: all 0.15s;
-    }
-
-    .gl-ref-toggle:hover { border-color: var(--gold); }
-
-    .gl-ref-toggle-icon {
-      transition: transform 0.2s;
-      color: var(--text-muted);
-    }
-
-    .gl-ref-toggle.open .gl-ref-toggle-icon { transform: rotate(180deg); }
-
-    .gl-ref-body {
-      display: none;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 var(--radius) var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .gl-ref-body.open { display: block; }
-
-    .gl-ref-search {
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .gl-ref-search input {
-      max-width: 340px;
-    }
-
-    .gl-ref-table { width: 100%; border-collapse: collapse; }
-
-    .gl-ref-table thead tr { background: #f8f9fb; }
-    .gl-ref-table th {
-      padding: 10px 16px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .gl-ref-table td {
-      padding: 10px 16px;
-      font-size: 13px;
-      border-bottom: 1px solid #f0f2f5;
-    }
-
-    .gl-ref-table tr:last-child td { border-bottom: none; }
-
-    .gl-ref-table tr:hover td { background: #fdfaf2; }
-
-    .gl-ref-table .cat-badge {
-      font-size: 10.5px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-
-    .cat-maintenance { background: #dbeafe; color: #1d4ed8; }
-    .cat-utilities   { background: #dcfce7; color: #166534; }
-    .cat-admin       { background: #f3e8ff; color: #6b21a8; }
-    .cat-insurance   { background: #fef9c3; color: #854d0e; }
-    .cat-management  { background: #fce7f3; color: #9d174d; }
-    .cat-capital     { background: #e0f2fe; color: #075985; }
-    .cat-professional{ background: #fff7ed; color: #9a3412; }
-    .cat-recreation  { background: #f0fdf4; color: #14532d; }
-    .cat-security    { background: #fef2f2; color: #991b1b; }
-    .cat-reserve     { background: #f5f3ff; color: #4c1d95; }
-
-    /* ── History / Log ── */
-    .history-section { margin-top: 24px; }
-
-    .history-item {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 12px 16px;
-      border-bottom: 1px solid #f0f2f5;
-      font-size: 13px;
-      transition: background 0.1s;
-    }
-
-    .history-item:hover { background: #fafbfc; }
-    .history-item:last-child { border-bottom: none; }
-
-    .history-po { font-family: monospace; font-weight: 700; font-size: 12px; color: var(--navy); white-space: nowrap; }
-    .history-info { flex: 1; min-width: 0; }
-    .history-vendor { font-weight: 600; }
-    .history-prop { color: var(--text-muted); font-size: 12px; }
-    .history-gl { font-family: monospace; font-size: 12px; font-weight: 700; color: var(--gold-dark); white-space: nowrap; }
-    .history-amount { font-weight: 700; color: var(--navy); white-space: nowrap; }
-
-    .empty-state {
-      text-align: center;
-      padding: 32px;
-      color: var(--text-muted);
-      font-size: 13.5px;
-    }
-
-    .empty-state .empty-icon { font-size: 32px; margin-bottom: 10px; }
-
-    /* ── Toast ── */
-    .toast-container {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      z-index: 999;
-    }
-
-    .toast {
-      background: var(--navy);
-      color: white;
-      padding: 12px 18px;
-      border-radius: 8px;
-      font-size: 13.5px;
-      font-weight: 500;
-      box-shadow: var(--shadow-lg);
-      animation: toastIn 0.25s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      max-width: 340px;
-    }
-
-    .toast.success { background: #166534; }
-    .toast.error { background: #991b1b; }
-
-    @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* ── Print styles ── */
-    @media print {
-      header, .card:not(#po-card), .gl-ref-section, .history-section, .btn-row, .card-header .btn { display: none !important; }
-      #po-card { border: none; box-shadow: none; }
-      #po-preview { display: block !important; }
-      body { background: white; }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PO GL Coding Assistant — Roxborough Communities</title>
+<style>
+:root{
+  --gold:#D4A84B;--gold2:#f0c96a;--gold3:#a07830;
+  --navy:#1a2640;--navy2:#253450;--navy3:#0f1a2e;
+  --bg:#f2f3f6;--white:#fff;--border:#dde1e8;
+  --text:#1e2630;--muted:#6b7585;
+  --green:#16a34a;--red:#dc2626;--blue:#2563eb;
+  --r:10px;--sh:0 2px 12px rgba(0,0,0,.08);--sh2:0 6px 28px rgba(0,0,0,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+header{background:var(--navy3);color:#fff;height:62px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.hbrand{display:flex;align-items:center;gap:13px}
+.hlogo{width:36px;height:36px;background:var(--gold);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:var(--navy3);letter-spacing:-1px}
+.htitle h1{font-size:16px;font-weight:700}
+.htitle p{font-size:11px;color:rgba(255,255,255,.45);margin-top:1px}
+.hbadge{background:rgba(212,168,75,.15);border:1px solid rgba(212,168,75,.35);color:var(--gold2);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1300px;margin:0 auto;padding:24px 20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:920px){.grid2{grid-template-columns:1fr}}
+
+/* ── CARDS ── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:22px}
+.card-h{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-h h2{font-size:13.5px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:8px}
+.chip-icon{width:24px;height:24px;background:linear-gradient(135deg,var(--gold),var(--gold3));border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.card-b{padding:18px}
+
+/* ── FORM ── */
+.frow{display:grid;gap:13px;margin-bottom:13px}
+.frow.c2{grid-template-columns:1fr 1fr}
+.frow.c3{grid-template-columns:1fr 1fr 1fr}
+.frow.c1{grid-template-columns:1fr}
+.fg{display:flex;flex-direction:column;gap:4px}
+label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+input,select,textarea{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-size:13.5px;color:var(--text);background:var(--white);transition:border-color .15s,box-shadow .15s;font-family:inherit;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,168,75,.13)}
+textarea{resize:vertical;min-height:68px}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%236b7585' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:30px}
+input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:inherit;white-space:nowrap}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold3));color:var(--navy3)}
+.btn-gold:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 4px 14px rgba(212,168,75,.38)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-navy:hover{background:var(--navy2)}
+.btn-ghost{background:transparent;color:var(--navy);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold3)}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;filter:none!important}
+.brow{display:flex;gap:9px;flex-wrap:wrap;margin-top:6px}
+
+/* ── INVOICE DROP ZONE ── */
+#drop-zone{border:2px dashed var(--border);border-radius:9px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#fafbfc}
+#drop-zone.over{border-color:var(--gold);background:#fffbf0}
+#drop-zone.has-file{border-color:var(--green);background:#f0fdf4;border-style:solid}
+.drop-icon{font-size:32px;margin-bottom:8px}
+.drop-label{font-size:13.5px;color:var(--muted)}
+.drop-label strong{color:var(--text)}
+#file-input{display:none}
+#invoice-thumb{max-width:100%;max-height:180px;border-radius:7px;margin-top:10px;box-shadow:var(--sh);display:none}
+
+/* ── SCAN STATUS ── */
+.scan-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 11px;border-radius:20px}
+.scan-pill.scanning{background:#eff6ff;color:#1d4ed8}
+.scan-pill.done{background:#dcfce7;color:#166534}
+.scan-pill.err{background:#fee2e2;color:#991b1b}
+.spin{animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── HST BADGE ── */
+.hst-tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px}
+.hst-resi{background:#dbeafe;color:#1e40af}
+.hst-comm{background:#dcfce7;color:#166534}
+.hst-mixed{background:#fef9c3;color:#854d0e}
+
+/* ── ALLOCATION TABLE ── */
+.alloc-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.alloc-table th{background:#f8f9fb;padding:8px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--border)}
+.alloc-table td{padding:9px 12px;border-bottom:1px solid #f0f2f5;vertical-align:middle}
+.alloc-table tr:last-child td{border-bottom:none}
+.alloc-table tr.total-row td{font-weight:700;background:#fefdf6;border-top:2px solid var(--gold)}
+.pct-badge{font-size:11.5px;font-weight:700;color:var(--navy2)}
+.amt-cell{font-family:'SF Mono',Consolas,monospace;font-size:13px;font-weight:700}
+.hst-cell{font-family:'SF Mono',Consolas,monospace;font-size:11.5px;color:var(--muted)}
+.itc-cell{font-size:11.5px;color:var(--green);font-weight:600}
+
+/* ── GL SUGGESTION ── */
+.gl-line{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--white);border:1.5px solid var(--border);border-radius:7px;margin-bottom:7px;cursor:pointer;transition:all .12s}
+.gl-line:hover{border-color:var(--gold);background:#fffbf2}
+.gl-line.sel{border-color:var(--gold);background:linear-gradient(135deg,#fffbf0,#fef4d6);box-shadow:0 0 0 2px rgba(212,168,75,.18)}
+.gl-chip{background:var(--navy);color:var(--gold2);font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:4px;white-space:nowrap;font-family:monospace}
+.gl-info{flex:1;min-width:0}
+.gl-name{font-size:13px;font-weight:600}
+.gl-why{font-size:11.5px;color:var(--muted);margin-top:1px}
+.radio-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all .12s}
+.gl-line.sel .radio-dot{background:var(--gold);border-color:var(--gold)}
+.ai-note{background:#f8f9fb;border-radius:7px;padding:10px 12px;font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:9px}
+.conf-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+.conf-high{background:#dcfce7;color:#166534}
+.conf-med{background:#fef9c3;color:#854d0e}
+.conf-low{background:#fee2e2;color:#991b1b}
+
+/* ── PO PREVIEW (screen) ── */
+.po-doc{border:2px solid var(--border);border-radius:9px;overflow:hidden;font-size:13px}
+.po-dh{background:var(--navy3);color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-start}
+.po-co{font-size:16px;font-weight:800;letter-spacing:.01em}
+.po-co-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.po-num-wrap{text-align:right}
+.po-num-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.45)}
+.po-num-val{font-size:22px;font-weight:800;color:var(--gold2);font-family:monospace;margin-top:1px}
+.po-dt{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+.po-meta{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
+.po-mb{padding:12px 18px;border-right:1px solid var(--border)}
+.po-mb:nth-child(even){border-right:none}
+.po-ml{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:3px}
+.po-mv{font-size:13.5px;font-weight:600;color:var(--navy)}
+.po-tbl{width:100%;border-collapse:collapse}
+.po-tbl th{background:#f8f9fb;padding:9px 16px;text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--border)}
+.po-tbl td{padding:10px 16px;border-bottom:1px solid #f0f2f5;font-size:13px}
+.po-tbl tr:last-child td{border-bottom:none}
+.po-tbl .ra{text-align:right}
+.po-total-bar{background:linear-gradient(135deg,#fefdf6,#fff8e8);padding:13px 18px;display:flex;justify-content:flex-end;align-items:center;gap:14px;border-top:2px solid var(--gold)}
+.po-tl{font-size:13px;font-weight:600;color:var(--muted)}
+.po-ta{font-size:22px;font-weight:800;color:var(--navy)}
+.po-terms{background:#f8f9fb;padding:10px 18px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.po-sigs{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--border)}
+.po-sig{padding:12px 18px;border-right:1px solid var(--border)}
+.po-sig:last-child{border-right:none}
+.po-sig-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.po-sig-line{border-bottom:1px solid var(--text);margin-top:20px;margin-bottom:3px}
+.po-sig-name{font-size:11px;color:var(--muted)}
+
+/* ── GL REF TABLE ── */
+.ref-toggle{width:100%;background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:13px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--navy);box-shadow:var(--sh);transition:all .15s}
+.ref-toggle:hover{border-color:var(--gold)}
+.ref-toggle.open{border-radius:var(--r) var(--r) 0 0}
+.ref-body{display:none;background:var(--white);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);overflow:hidden;box-shadow:var(--sh)}
+.ref-body.open{display:block}
+.ref-tbl{width:100%;border-collapse:collapse}
+.ref-tbl th{background:#f8f9fb;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--border)}
+.ref-tbl td{padding:9px 14px;font-size:13px;border-bottom:1px solid #f0f2f5}
+.ref-tbl tr:last-child td{border-bottom:none}
+.ref-tbl tr:hover td{background:#fdfaf2}
+.cat-m{background:#dbeafe;color:#1d4ed8}
+.cat-u{background:#dcfce7;color:#166534}
+.cat-a{background:#f3e8ff;color:#6b21a8}
+.cat-i{background:#fef9c3;color:#854d0e}
+.cat-p{background:#fff7ed;color:#9a3412}
+.cat-c{background:#e0f2fe;color:#075985}
+.cat-s{background:#fef2f2;color:#991b1b}
+.cat-r{background:#f0fdf4;color:#14532d}
+.cat-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px}
+
+/* ── HISTORY ── */
+.hist-row{display:flex;align-items:center;gap:13px;padding:11px 16px;border-bottom:1px solid #f0f2f5;font-size:13px;transition:background .1s}
+.hist-row:hover{background:#fafbfc}
+.hist-row:last-child{border-bottom:none}
+.hist-po{font-family:monospace;font-weight:700;font-size:12px;color:var(--navy);white-space:nowrap}
+.hist-info{flex:1;min-width:0}
+.hist-v{font-weight:600}
+.hist-p{color:var(--muted);font-size:12px}
+.hist-gl{font-family:monospace;font-size:12px;font-weight:700;color:var(--gold3);white-space:nowrap}
+.hist-amt{font-weight:700;color:var(--navy);white-space:nowrap}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:28px;color:var(--muted);font-size:13px}
+.empty-ico{font-size:28px;margin-bottom:8px}
+
+/* ── TOAST ── */
+#toasts{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:7px;z-index:999}
+.toast{background:var(--navy);color:#fff;padding:11px 16px;border-radius:7px;font-size:13px;font-weight:500;box-shadow:var(--sh2);animation:tIn .22s ease;max-width:320px}
+.toast.ok{background:#166534}
+.toast.err{background:#991b1b}
+@keyframes tIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── PRINT ── */
+@media print{
+  header,.no-print,#invoice-section,#gl-section,#hist-section,.brow,.card-h .btn{display:none!important}
+  body{background:#fff}
+  .card{border:none;box-shadow:none;margin:0}
+  #po-preview{display:block!important}
+  #po-empty{display:none!important}
+  .po-doc{border:1px solid #ccc}
+}
+</style>
 </head>
 <body>
 
 <header>
-  <div class="header-brand">
-    <div class="header-logo">RC</div>
-    <div class="header-title">
+  <div class="hbrand">
+    <div class="hlogo">RC</div>
+    <div class="htitle">
       <h1>PO GL Coding Assistant</h1>
       <p>Roxborough Communities — Finance &amp; Accounting</p>
     </div>
   </div>
-  <span class="header-badge">AI-Powered</span>
+  <span class="hbadge">AI-Powered · Claude</span>
 </header>
 
-<div class="container">
+<div class="wrap">
 
-  <div class="grid">
+<!-- ══ ROW 1: Invoice Upload + PO Form ══ -->
+<div class="grid2">
 
-    <!-- LEFT: PO Entry Form -->
+  <!-- Invoice Upload -->
+  <div id="invoice-section">
     <div class="card">
-      <div class="card-header">
-        <h2><span class="icon">📋</span> New Purchase Order</h2>
-        <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;" onclick="clearForm()">Clear</button>
-      </div>
-      <div class="card-body">
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>PO Number</label>
-            <input type="text" id="po-number" placeholder="Auto-generated" readonly style="background:#f8f9fb;cursor:default;" />
-          </div>
-          <div class="form-group">
-            <label>Date</label>
-            <input type="date" id="po-date" />
-          </div>
+      <div class="card-h"><h2><span class="chip-icon">📎</span> Invoice Upload</h2><span id="scan-status"></span></div>
+      <div class="card-b">
+        <div id="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+          <div class="drop-icon">📄</div>
+          <div class="drop-label"><strong>Drop invoice here</strong> or click to browse<br><span style="font-size:12px;margin-top:4px;display:block">PNG · JPG · PDF · HEIC — Claude will auto-read all details</span></div>
+          <img id="invoice-thumb" alt="Invoice preview"/>
         </div>
+        <input type="file" id="file-input" accept="image/*,.pdf" onchange="fileSelected(this)"/>
+        <div style="margin-top:12px" class="brow">
+          <button class="btn btn-gold" onclick="scanInvoice()" id="scan-btn" disabled>✨ Scan with Claude</button>
+          <button class="btn btn-ghost" onclick="clearInvoice()">✕ Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="form-row full">
-          <div class="form-group">
-            <label>Property / Community</label>
-            <select id="po-property">
+  <!-- PO Form -->
+  <div>
+    <div class="card">
+      <div class="card-h"><h2><span class="chip-icon">📋</span> Purchase Order Details</h2><button class="btn btn-ghost" style="font-size:12px;padding:5px 11px" onclick="clearForm()">Clear</button></div>
+      <div class="card-b">
+        <div class="frow c2">
+          <div class="fg"><label>PO Number</label><input id="f-po" readonly/></div>
+          <div class="fg"><label>Date</label><input type="date" id="f-date"/></div>
+        </div>
+        <div class="frow c1">
+          <div class="fg"><label>Property</label>
+            <select id="f-prop" onchange="propChanged()">
               <option value="">— Select property —</option>
-              <optgroup label="Roxborough Communities">
-                <option>Roxborough Village HOA</option>
-                <option>Roxborough Park HOA</option>
-                <option>Roxborough Highlands</option>
-              </optgroup>
-              <optgroup label="Other Managed Communities">
-                <option>Chatfield Farms HOA</option>
-                <option>Sterling Ranch Community</option>
-                <option>Plum Creek HOA</option>
-                <option>Crystal Valley Ranch</option>
-                <option>Meridian Ranch HOA</option>
-                <option>Saddle Rock Ridge HOA</option>
-                <option>Wolf Ranch HOA</option>
-                <option>Corporate / Admin</option>
-              </optgroup>
+              <option value="772queen">772 Queen St E</option>
+              <option value="1133yonge">1133 Yonge St</option>
+              <option value="college">College St 871-899</option>
+              <option value="eglinton">1924 Eglinton Ave W</option>
+              <option value="901college">901 College St</option>
             </select>
           </div>
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Vendor Name</label>
-            <input type="text" id="po-vendor" placeholder="e.g. Apex Landscaping" />
-          </div>
-          <div class="form-group">
-            <label>Invoice #</label>
-            <input type="text" id="po-invoice" placeholder="Optional" />
-          </div>
+        <div class="frow c2">
+          <div class="fg"><label>Vendor</label><input id="f-vendor" placeholder="Vendor name"/></div>
+          <div class="fg"><label>Invoice #</label><input id="f-inv" placeholder="Optional"/></div>
         </div>
-
-        <div class="form-row full">
-          <div class="form-group">
-            <label>Description of Work / Purchase</label>
-            <textarea id="po-description" placeholder="Describe what was purchased or the work performed. Be specific — e.g. 'Monthly pool chemical service and inspection for June' or 'Emergency pipe repair in building B restroom'"></textarea>
-          </div>
+        <div class="frow c1">
+          <div class="fg"><label>Description</label><textarea id="f-desc" placeholder="Describe the work or purchase — the more detail, the better the GL suggestion"></textarea></div>
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Amount ($)</label>
-            <input type="number" id="po-amount" placeholder="0.00" min="0" step="0.01" />
-          </div>
-          <div class="form-group">
-            <label>Department</label>
-            <select id="po-department">
-              <option value="">— Optional —</option>
-              <option>Maintenance</option>
-              <option>Landscaping</option>
-              <option>Administration</option>
-              <option>Finance</option>
-              <option>Management</option>
-              <option>Capital Projects</option>
-              <option>Reserve Fund</option>
+        <div class="frow c2">
+          <div class="fg"><label>Invoice Total ($)</label><input type="number" id="f-amt" placeholder="0.00" min="0" step="0.01" oninput="amtChanged()"/></div>
+          <div class="fg"><label>HST in Total?</label>
+            <select id="f-hst-in">
+              <option value="yes">Yes — HST included in total</option>
+              <option value="no">No — total is net (HST extra)</option>
+              <option value="exempt">Exempt / Not taxable</option>
             </select>
           </div>
         </div>
-
-        <div class="form-row full">
-          <div class="form-group">
-            <label>Notes / Additional Info</label>
-            <input type="text" id="po-notes" placeholder="Budget approval #, contract reference, etc." />
+        <div class="frow c1" id="alloc-row" style="display:none">
+          <div class="fg"><label>Allocation Schedule</label>
+            <select id="f-alloc" onchange="allocChanged()"></select>
           </div>
         </div>
-
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="getSuggestion()" id="suggest-btn">
-            <span id="suggest-spinner" class="spinner"></span>
-            <span id="suggest-text">✨ Suggest GL Code</span>
-          </button>
-          <button class="btn btn-secondary" onclick="generatePO()" id="generate-btn" disabled>
-            📄 Generate PO
-          </button>
+        <div class="frow c2" id="manual-split-row" style="display:none">
+          <div class="fg"><label>Resi % (manual)</label><input type="number" id="f-resi-pct" placeholder="e.g. 50" min="0" max="100" step="0.01" oninput="manualSplitChanged()"/></div>
+          <div class="fg"><label>Comm % (manual)</label><input type="number" id="f-comm-pct" placeholder="e.g. 50" min="0" max="100" step="0.01" oninput="manualSplitCommChanged()"/></div>
         </div>
-
+        <div class="frow c1">
+          <div class="fg"><label>Notes</label><input id="f-notes" placeholder="Budget ref, work order, tenant, etc."/></div>
+        </div>
+        <div class="brow">
+          <button class="btn btn-gold" onclick="suggestGL()" id="gl-btn">✨ Suggest GL Code</button>
+          <button class="btn btn-navy" onclick="buildPO()" id="po-btn" disabled>📄 Generate PO</button>
+        </div>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- RIGHT: GL Suggestion + PO Preview -->
-    <div style="display:flex;flex-direction:column;gap:24px;">
+<!-- ══ ROW 2: GL Suggestion + PO Preview ══ -->
+<div class="grid2" id="gl-section">
 
-      <!-- GL Suggestion -->
-      <div class="card">
-        <div class="card-header">
-          <h2><span class="icon">🧠</span> GL Code Suggestion</h2>
+  <!-- GL Suggestion -->
+  <div class="card">
+    <div class="card-h"><h2><span class="chip-icon">🧠</span> GL Code Suggestion</h2></div>
+    <div class="card-b">
+      <div id="gl-empty" class="empty"><div class="empty-ico">🔍</div>Fill in the description and click <strong>Suggest GL Code</strong></div>
+      <div id="gl-out" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+          <div style="font-size:13px;font-weight:700;color:var(--navy)">Recommended GL Codes</div>
+          <span id="gl-conf" class="conf-badge"></span>
         </div>
-        <div class="card-body">
-
-          <div id="suggestion-empty" class="empty-state">
-            <div class="empty-icon">🔍</div>
-            Fill in the purchase description and click <strong>Suggest GL Code</strong> to get an AI-powered recommendation.
+        <div id="gl-lines"></div>
+        <div class="ai-note" id="gl-note"></div>
+        <div style="margin-top:13px">
+          <div class="fg" style="flex-direction:row;gap:9px;align-items:flex-end">
+            <div class="fg" style="flex:0 0 110px"><label>GL Code</label><input id="sel-code" style="font-family:monospace;font-weight:700"/></div>
+            <div class="fg" style="flex:1"><label>Account Name</label><input id="sel-name"/></div>
           </div>
-
-          <div id="suggestion-box" class="suggestion-box">
-            <div class="suggestion-header">
-              <h3>Recommended GL Codes</h3>
-              <span id="confidence-badge" class="confidence-badge"></span>
-            </div>
-            <div id="gl-suggestions"></div>
-            <div class="ai-reasoning" id="ai-reasoning"></div>
-          </div>
-
-          <div id="selected-gl-display" style="display:none;margin-top:12px;">
-            <label>Selected GL Code</label>
-            <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
-              <input type="text" id="selected-gl-code" placeholder="GL Code" style="width:120px;font-family:monospace;font-weight:700;" />
-              <input type="text" id="selected-gl-name" placeholder="Account Name" style="flex:1;" />
-            </div>
-          </div>
-
         </div>
       </div>
-
-      <!-- PO Preview -->
-      <div class="card" id="po-card">
-        <div class="card-header">
-          <h2><span class="icon">📄</span> Purchase Order Preview</h2>
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;" onclick="window.print()">🖨 Print</button>
-            <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;" onclick="savePO()">💾 Save</button>
-          </div>
-        </div>
-        <div class="card-body" style="padding:16px;">
-
-          <div id="po-empty" class="empty-state">
-            <div class="empty-icon">📋</div>
-            Complete the form and click <strong>Generate PO</strong> to preview the purchase order.
-          </div>
-
-          <div id="po-preview">
-            <div class="po-document">
-              <div class="po-doc-header">
-                <div>
-                  <div class="po-company">Roxborough Communities</div>
-                  <div class="po-tagline">Property Management &amp; HOA Services</div>
-                </div>
-                <div class="po-number-label">
-                  <div style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.05em;">Purchase Order</div>
-                  <div class="po-number-val" id="preview-po-number"></div>
-                  <div class="po-date" id="preview-date"></div>
-                </div>
-              </div>
-              <div class="po-meta">
-                <div class="po-meta-block">
-                  <div class="po-meta-label">Property</div>
-                  <div class="po-meta-value" id="preview-property"></div>
-                </div>
-                <div class="po-meta-block">
-                  <div class="po-meta-label">Invoice #</div>
-                  <div class="po-meta-value" id="preview-invoice"></div>
-                </div>
-                <div class="po-meta-block">
-                  <div class="po-meta-label">Vendor</div>
-                  <div class="po-meta-value" id="preview-vendor"></div>
-                </div>
-                <div class="po-meta-block">
-                  <div class="po-meta-label">Department</div>
-                  <div class="po-meta-value" id="preview-department"></div>
-                </div>
-              </div>
-              <table class="po-table">
-                <thead>
-                  <tr>
-                    <th>Description</th>
-                    <th>GL Code</th>
-                    <th>Account</th>
-                    <th style="text-align:right;">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td id="preview-description"></td>
-                    <td><span id="preview-gl-code" class="gl-code-chip"></span></td>
-                    <td id="preview-gl-name" style="color:var(--text-muted);font-size:12px;"></td>
-                    <td style="text-align:right;font-weight:700;" id="preview-amount"></td>
-                  </tr>
-                </tbody>
-              </table>
-              <div class="po-total-row">
-                <span class="po-total-label">Total Amount</span>
-                <span class="po-total-amount" id="preview-total"></span>
-              </div>
-              <div id="preview-notes-row" style="padding:10px 20px;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border);display:none;">
-                <strong>Notes:</strong> <span id="preview-notes"></span>
-              </div>
-              <div class="po-approval">
-                <div class="po-sig-block">
-                  <div class="po-sig-label">Requested By</div>
-                  <div class="po-sig-line"></div>
-                  <div class="po-sig-name">Signature / Date</div>
-                </div>
-                <div class="po-sig-block">
-                  <div class="po-sig-label">Property Manager</div>
-                  <div class="po-sig-line"></div>
-                  <div class="po-sig-name">Signature / Date</div>
-                </div>
-                <div class="po-sig-block">
-                  <div class="po-sig-label">Finance Approval</div>
-                  <div class="po-sig-line"></div>
-                  <div class="po-sig-name">Signature / Date</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
     </div>
   </div>
 
-  <!-- GL Reference Table -->
-  <div class="gl-ref-section">
-    <button class="gl-ref-toggle" id="gl-ref-toggle" onclick="toggleGLRef()">
-      <span style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:16px;">📊</span>
-        GL Code Reference Chart — Roxborough Communities Chart of Accounts
-      </span>
-      <span class="gl-ref-toggle-icon">▼</span>
-    </button>
-    <div class="gl-ref-body" id="gl-ref-body">
-      <div class="gl-ref-search">
-        <input type="text" placeholder="Search GL codes, account names, or categories..." oninput="filterGLRef(this.value)" />
-      </div>
-      <table class="gl-ref-table" id="gl-ref-table">
-        <thead>
-          <tr>
-            <th>GL Code</th>
-            <th>Account Name</th>
-            <th>Category</th>
-            <th>Common Uses</th>
-          </tr>
-        </thead>
-        <tbody id="gl-ref-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- History -->
-  <div class="history-section">
-    <div class="card">
-      <div class="card-header">
-        <h2><span class="icon">🗂</span> Coded PO History</h2>
-        <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;" onclick="clearHistory()">Clear All</button>
-      </div>
-      <div id="history-list">
-        <div class="empty-state" id="history-empty">
-          <div class="empty-icon">📂</div>
-          No POs saved yet. Generate and save a PO to see it here.
-        </div>
+  <!-- Allocation Preview -->
+  <div class="card">
+    <div class="card-h"><h2><span class="chip-icon">📊</span> Cost Allocation &amp; HST</h2></div>
+    <div class="card-b">
+      <div id="alloc-empty" class="empty"><div class="empty-ico">📐</div>Select a property and enter an amount to see the allocation breakdown</div>
+      <div id="alloc-out" style="display:none">
+        <div id="alloc-summary" style="margin-bottom:10px;font-size:12.5px;color:var(--muted)"></div>
+        <table class="alloc-table">
+          <thead><tr><th>Pool</th><th>%</th><th>Net Amt</th><th>HST</th><th>Gross / ITC</th></tr></thead>
+          <tbody id="alloc-tbody"></tbody>
+        </table>
+        <div id="alloc-note" style="margin-top:10px;font-size:12px;color:var(--muted);background:#f8f9fb;border-radius:6px;padding:9px 11px"></div>
       </div>
     </div>
   </div>
 
 </div>
 
-<!-- Toast container -->
-<div class="toast-container" id="toast-container"></div>
+<!-- ══ PO PREVIEW ══ -->
+<div class="card" id="po-card">
+  <div class="card-h no-print"><h2><span class="chip-icon">📄</span> Purchase Order Preview</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px" onclick="window.print()">🖨 Print / PDF</button>
+      <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px" onclick="savePO()">💾 Save</button>
+    </div>
+  </div>
+  <div class="card-b">
+    <div id="po-empty" class="empty"><div class="empty-ico">📋</div>Generate a PO to preview it here</div>
+    <div id="po-preview" style="display:none">
+      <div class="po-doc">
+        <div class="po-dh">
+          <div>
+            <div class="po-co">Roxborough Communities</div>
+            <div class="po-co-sub">Property Management &amp; Investments</div>
+          </div>
+          <div class="po-num-wrap">
+            <div class="po-num-lbl">Purchase Order</div>
+            <div class="po-num-val" id="pv-po"></div>
+            <div class="po-dt" id="pv-date"></div>
+          </div>
+        </div>
+        <div class="po-meta">
+          <div class="po-mb"><div class="po-ml">Property</div><div class="po-mv" id="pv-prop"></div></div>
+          <div class="po-mb"><div class="po-ml">Vendor</div><div class="po-mv" id="pv-vendor"></div></div>
+          <div class="po-mb"><div class="po-ml">Invoice #</div><div class="po-mv" id="pv-inv"></div></div>
+          <div class="po-mb"><div class="po-ml">Allocation</div><div class="po-mv" id="pv-alloc"></div></div>
+        </div>
+        <table class="po-tbl">
+          <thead><tr><th>Description</th><th>GL Code</th><th>Pool</th><th>Net Amt</th><th>HST</th><th class="ra">Total</th></tr></thead>
+          <tbody id="pv-lines"></tbody>
+        </table>
+        <div class="po-total-bar"><span class="po-tl">Total</span><span class="po-ta" id="pv-total"></span></div>
+        <div id="pv-notes-row" style="padding:9px 18px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);display:none">
+          <strong>Notes:</strong> <span id="pv-notes"></span>
+        </div>
+        <div class="po-terms">
+          <span>Payment Terms: <strong>Net 30</strong></span>
+          <span>Submit invoices to: <strong>ap@cliftonblake.com</strong></span>
+          <span>HST Reg: <strong>On file</strong></span>
+        </div>
+        <div class="po-sigs">
+          <div class="po-sig"><div class="po-sig-lbl">Requested By</div><div class="po-sig-line"></div><div class="po-sig-name">Signature / Date</div></div>
+          <div class="po-sig"><div class="po-sig-lbl">Property Manager</div><div class="po-sig-line"></div><div class="po-sig-name">Signature / Date</div></div>
+          <div class="po-sig"><div class="po-sig-lbl">Finance Approval</div><div class="po-sig-line"></div><div class="po-sig-name">Signature / Date</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GL REFERENCE ══ -->
+<div style="margin-bottom:22px">
+  <button class="ref-toggle" id="ref-toggle" onclick="toggleRef()">
+    <span style="display:flex;align-items:center;gap:10px"><span style="font-size:15px">📚</span>GL Code Reference — Roxborough Communities Chart of Accounts</span>
+    <span id="ref-arrow">▼</span>
+  </button>
+  <div class="ref-body" id="ref-body">
+    <div style="padding:13px 18px;border-bottom:1px solid var(--border)">
+      <input placeholder="Search codes, names, categories…" oninput="filterRef(this.value)" style="max-width:360px"/>
+    </div>
+    <table class="ref-tbl"><thead><tr><th>Code</th><th>Account Name</th><th>Cat</th><th>HST Treatment</th><th>Common Uses</th></tr></thead>
+    <tbody id="ref-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- ══ HISTORY ══ -->
+<div class="card" id="hist-section">
+  <div class="card-h"><h2><span class="chip-icon">🗂</span> PO History</h2><button class="btn btn-ghost" style="font-size:12px;padding:5px 11px" onclick="clearHist()">Clear</button></div>
+  <div id="hist-list"><div class="empty" id="hist-empty"><div class="empty-ico">📂</div>No POs saved yet</div></div>
+</div>
+
+</div><!-- /wrap -->
+<div id="toasts"></div>
 
 <script src="config.js"></script>
 <script>
-// ── GL Chart of Accounts ──────────────────────────────────────────────────────
-const GL_CODES = [
-  // Maintenance
-  { code: '6010', name: 'General Maintenance & Repairs', category: 'maintenance', uses: 'Miscellaneous repairs, handyman work, general upkeep' },
-  { code: '6015', name: 'Preventive Maintenance', category: 'maintenance', uses: 'Scheduled inspections, filter replacements, routine service contracts' },
-  { code: '6020', name: 'Landscaping & Grounds', category: 'maintenance', uses: 'Lawn care, tree trimming, fertilizing, sod replacement, mulch' },
-  { code: '6025', name: 'Snow Removal & Ice Control', category: 'maintenance', uses: 'Plowing, salting, shoveling, ice melt materials' },
-  { code: '6030', name: 'Pool & Spa Maintenance', category: 'maintenance', uses: 'Chemical service, pool cleaning, equipment repair, pump maintenance' },
-  { code: '6035', name: 'HVAC Maintenance & Repair', category: 'maintenance', uses: 'Heating, cooling, ventilation service, coil cleaning, refrigerant' },
-  { code: '6040', name: 'Plumbing Repairs', category: 'maintenance', uses: 'Pipe repairs, drain cleaning, fixture replacement, leak repairs' },
-  { code: '6045', name: 'Electrical Repairs', category: 'maintenance', uses: 'Lighting repairs, outlet replacement, panel work, exterior lighting' },
-  { code: '6050', name: 'Roofing & Gutters', category: 'maintenance', uses: 'Roof repairs, gutter cleaning, flashing, downspout work' },
-  { code: '6055', name: 'Painting & Caulking', category: 'maintenance', uses: 'Interior/exterior painting, caulking, staining, sealing' },
-  { code: '6060', name: 'Janitorial & Cleaning', category: 'maintenance', uses: 'Common area cleaning, pressure washing, window cleaning' },
-  { code: '6065', name: 'Pest Control', category: 'maintenance', uses: 'Exterminator services, rodent control, termite inspection' },
-  { code: '6070', name: 'Elevator Maintenance', category: 'maintenance', uses: 'Elevator service contracts, repairs, inspections, certification' },
-  { code: '6075', name: 'Asphalt & Concrete', category: 'maintenance', uses: 'Parking lot repair, driveway sealing, sidewalk repair, crack filling' },
-  { code: '6080', name: 'Fence & Gate Repair', category: 'maintenance', uses: 'Fence repair/replacement, gate operators, access control hardware' },
-  { code: '6085', name: 'Irrigation Systems', category: 'maintenance', uses: 'Sprinkler repair, backflow testing, irrigation controller service' },
-  { code: '6090', name: 'Signage', category: 'maintenance', uses: 'Community signs, directional signage, monument letters' },
-  // Utilities
-  { code: '7010', name: 'Electric — Common Areas', category: 'utilities', uses: 'Common area electricity, parking lot lighting, clubhouse power' },
-  { code: '7015', name: 'Natural Gas', category: 'utilities', uses: 'Gas service for clubhouse, pool heater, common area heating' },
-  { code: '7020', name: 'Water & Sewer', category: 'utilities', uses: 'Common area water, irrigation meter, sewer charges' },
-  { code: '7025', name: 'Trash & Recycling', category: 'utilities', uses: 'Dumpster service, bulk trash pickup, recycling containers' },
-  { code: '7030', name: 'Internet & Cable', category: 'utilities', uses: 'Bulk cable/internet agreements, WiFi hotspots, community TV' },
-  { code: '7035', name: 'Phone & Communications', category: 'utilities', uses: 'Office phones, gate call boxes, intercom systems' },
-  // Administrative
-  { code: '5010', name: 'Office Supplies', category: 'admin', uses: 'Paper, ink, toner, folders, stamps, envelopes' },
-  { code: '5015', name: 'Postage & Mailing', category: 'admin', uses: 'Certified mail, bulk mailings, annual meeting notices' },
-  { code: '5020', name: 'Printing & Copying', category: 'admin', uses: 'Newsletter printing, meeting packets, violation letters' },
-  { code: '5025', name: 'Software & Subscriptions', category: 'admin', uses: 'Property management software, Zoom, DocuSign, Microsoft 365' },
-  { code: '5030', name: 'Bank Fees & Charges', category: 'admin', uses: 'Monthly fees, wire fees, lockbox charges, returned check fees' },
-  { code: '5035', name: 'Licenses & Permits', category: 'admin', uses: 'Business licenses, pool permits, elevator certificates, trade permits' },
-  { code: '5040', name: 'Meetings & Events', category: 'admin', uses: 'Annual meeting venue, catering, board retreat, community events' },
-  // Management
-  { code: '4010', name: 'Management Fees', category: 'management', uses: 'Monthly property management fee per management agreement' },
-  { code: '4015', name: 'On-Site Staff', category: 'management', uses: 'Community manager, maintenance technician, concierge wages' },
-  { code: '4020', name: 'Payroll Taxes & Benefits', category: 'management', uses: 'FICA, unemployment, health insurance for on-site employees' },
-  // Insurance
-  { code: '5510', name: 'Property Insurance', category: 'insurance', uses: 'Building/common area property coverage' },
-  { code: '5515', name: 'General Liability Insurance', category: 'insurance', uses: 'Slip-and-fall, premises liability coverage' },
-  { code: '5520', name: 'Directors & Officers (D&O)', category: 'insurance', uses: 'Board member liability insurance' },
-  { code: '5525', name: 'Workers Compensation', category: 'insurance', uses: 'Workers comp for employees or contractors where required' },
-  { code: '5530', name: 'Umbrella Policy', category: 'insurance', uses: 'Excess liability umbrella coverage' },
-  // Professional Services
-  { code: '5110', name: 'Legal Fees', category: 'professional', uses: 'Attorney fees, collections, covenant enforcement, contract review' },
-  { code: '5115', name: 'Accounting & Audit', category: 'professional', uses: 'CPA fees, audit, tax return (Form 1120-H), bookkeeping' },
-  { code: '5120', name: 'Reserve Study', category: 'professional', uses: 'Reserve study update, component analysis, funding plan' },
-  { code: '5125', name: 'Engineering & Consulting', category: 'professional', uses: 'Structural inspection, building survey, drainage study' },
-  // Security
-  { code: '6510', name: 'Security Services', category: 'security', uses: 'Guard services, security patrol, off-duty officer' },
-  { code: '6515', name: 'Security Systems & Monitoring', category: 'security', uses: 'Camera systems, alarm monitoring, access control maintenance' },
-  // Recreation & Amenities
-  { code: '6610', name: 'Recreation Equipment', category: 'recreation', uses: 'Fitness equipment, playground equipment, sports courts' },
-  { code: '6615', name: 'Amenity Supplies', category: 'recreation', uses: 'Pool chemicals, fitness supplies, game room equipment' },
-  { code: '6620', name: 'Clubhouse Operations', category: 'recreation', uses: 'Clubhouse supplies, furniture, décor, kitchen items' },
-  // Capital & Reserve
-  { code: '8010', name: 'Capital Improvements', category: 'capital', uses: 'Major projects extending useful life: new roof, parking lot overlay' },
-  { code: '8015', name: 'Reserve Fund Expenditures', category: 'reserve', uses: 'Planned replacements funded by reserve: roofing, HVAC, painting' },
-  { code: '8020', name: 'Equipment Purchase', category: 'capital', uses: 'Riding mower, pressure washer, tools, vehicles over threshold' },
-  { code: '9010', name: 'Reserve Fund Transfer', category: 'reserve', uses: 'Monthly transfer from operating to reserve account' },
-];
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const API_KEY = (typeof CONFIG !== 'undefined') ? CONFIG.ANTHROPIC_API_KEY : 'YOUR_KEY_HERE';
+const MODEL   = 'claude-haiku-4-5-20251001';
+const HST     = 0.13;
 
-// ── Utility Functions ─────────────────────────────────────────────────────────
-function generatePONumber() {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const seq = String(Math.floor(Math.random() * 9000) + 1000);
-  return `PO-${y}${m}-${seq}`;
-}
-
-function formatCurrency(val) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0);
-}
-
-function showToast(message, type = '') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3500);
-}
-
-// ── Initialize ────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('po-number').value = generatePONumber();
-  document.getElementById('po-date').value = new Date().toISOString().split('T')[0];
-  renderGLRef(GL_CODES);
-  renderHistory();
-});
-
-// ── GL Reference Table ────────────────────────────────────────────────────────
-const CAT_LABELS = {
-  maintenance: 'Maintenance',
-  utilities:   'Utilities',
-  admin:       'Administrative',
-  management:  'Management',
-  insurance:   'Insurance',
-  professional:'Professional Svcs',
-  security:    'Security',
-  recreation:  'Recreation',
-  capital:     'Capital',
-  reserve:     'Reserve Fund',
+// ── PROPERTIES ────────────────────────────────────────────────────────────────
+const PROPS = {
+  '772queen': {
+    label: '772 Queen St E',
+    type: 'mixed',
+    resi: 8517, comm: 16148,
+    tenants: ['Dollarama','BMO','LCBO'],
+    autoSplitCodes: ['fire','backflow'], // only these use auto-split
+    autoResi: 34.54, autoComm: 65.46,
+    allocs: [
+      { id:'auto',   label:'Auto Split (Fire/Backflow only)', resi:34.54, comm:65.46, condo:0, note:'34.54% resi / 65.46% comm — based on sq ft ratio 8,517 : 16,148' },
+      { id:'manual', label:'Manual Split', resi:null, comm:null, condo:0, note:'Enter resi / comm % manually below' },
+    ],
+  },
+  '1133yonge': {
+    label: '1133 Yonge St',
+    type: 'commercial',
+    resi:0, comm:100,
+    tenants: ['Sash Restaurant','EllisDon','Sleep Country'],
+    allocs: [
+      { id:'full', label:'100% Commercial', resi:0, comm:100, condo:0, note:'All costs allocated to commercial — HST fully recoverable as ITC' },
+    ],
+  },
+  'college': {
+    label: 'College St 871-899',
+    type: 'mixed3',
+    resi:71793, comm:17867, condo:28006,
+    tenants: ['Loblaws','Bone and Biscuit','Blood and Bandages Barbershop'],
+    allocs: [
+      { id:'equalSplit',   label:'Equal Split',         condo:24.37, resi:60.10, comm:15.53, note:'Equal area-weighted split across all three pools' },
+      { id:'resiWeighted', label:'Resi-Weighted',        condo:27.98, resi:68.99, comm:3.03,  note:'Residential-weighted — use for unit-specific services (elevators, corridor, etc.)' },
+      { id:'hvac',         label:'HVAC',                 condo:30.41, resi:59.46, comm:10.13, note:'HVAC system allocation based on equipment serving each pool' },
+      { id:'parking',      label:'Parking',              condo:64.29, resi:31.72, comm:3.99,  note:'Parking allocation weighted to condo-owned stalls' },
+    ],
+  },
+  'eglinton': {
+    label: '1924 Eglinton Ave W',
+    type: 'mixed',
+    resi:19071, comm:2310,
+    tenants: ['KFC'],
+    allocs: [
+      { id:'standard',   label:'Standard (80/20)',   resi:80, comm:20, condo:0, note:'Standard operating cost split — 80% residential / 20% commercial (KFC)' },
+      { id:'janitorial', label:'Janitorial (90/10)', resi:90, comm:10, condo:0, note:'Janitorial services split — 90% residential / 10% commercial' },
+    ],
+  },
+  '901college': {
+    label: '901 College St',
+    type: 'residential',
+    resi:4020, comm:0,
+    tenants: [],
+    allocs: [
+      { id:'full', label:'100% Residential', resi:100, comm:0, condo:0, note:'Residential-only property — all costs allocated to residential pool. HST not recoverable.' },
+    ],
+  },
 };
 
-function renderGLRef(codes) {
-  const tbody = document.getElementById('gl-ref-tbody');
-  tbody.innerHTML = codes.map(gl => `
-    <tr>
-      <td><span class="gl-code-chip">${gl.code}</span></td>
-      <td style="font-weight:600;">${gl.name}</td>
-      <td><span class="cat-badge cat-${gl.category}">${CAT_LABELS[gl.category] || gl.category}</span></td>
-      <td style="color:var(--text-muted);font-size:12px;">${gl.uses}</td>
-    </tr>
-  `).join('');
+// ── GL CODES ─────────────────────────────────────────────────────────────────
+const GL = [
+  // MAINTENANCE
+  {code:'6010',name:'General Maintenance & Repairs',     cat:'m', hst:'mixed', uses:'Handyman, misc repairs, building upkeep'},
+  {code:'6015',name:'Preventive Maintenance',             cat:'m', hst:'mixed', uses:'Scheduled inspections, filter changes, service contracts'},
+  {code:'6020',name:'Electrical – Repairs & Service',    cat:'m', hst:'mixed', uses:'Lighting, panels, outlets, exterior lighting'},
+  {code:'6025',name:'Plumbing – Repairs & Service',      cat:'m', hst:'mixed', uses:'Pipe repairs, drain cleaning, fixtures, leak repairs'},
+  {code:'6030',name:'HVAC – Maintenance & Repair',       cat:'m', hst:'mixed', uses:'Furnace, AC, boiler, coil cleaning, refrigerant, balancing'},
+  {code:'6035',name:'Roofing & Waterproofing',           cat:'m', hst:'mixed', uses:'Roof repairs, membrane, gutters, flashing, caulking'},
+  {code:'6040',name:'Fire & Life Safety Systems',        cat:'m', hst:'mixed', uses:'Fire alarm, sprinkler inspection, extinguisher, backflow testing'},
+  {code:'6045',name:'Elevator – Maintenance & Repair',   cat:'m', hst:'mixed', uses:'Elevator service contract, repairs, MOL inspection, certification'},
+  {code:'6050',name:'Parking & Garage',                  cat:'m', hst:'mixed', uses:'Garage door, line painting, asphalt, lighting, intercom'},
+  {code:'6055',name:'Landscaping & Grounds',             cat:'m', hst:'mixed', uses:'Lawn care, tree trimming, planting, mulch, garden beds'},
+  {code:'6060',name:'Snow Removal & Salting',            cat:'m', hst:'mixed', uses:'Plowing, salting, shoveling, ice melt, walkway clearing'},
+  {code:'6065',name:'Janitorial & Cleaning',             cat:'m', hst:'mixed', uses:'Common area cleaning, carpet cleaning, pressure washing'},
+  {code:'6070',name:'Pest Control',                      cat:'m', hst:'mixed', uses:'Exterminator, rodent control, cockroach, termite'},
+  {code:'6075',name:'Painting & Decorating',             cat:'m', hst:'mixed', uses:'Interior/exterior painting, wallpaper, staining, touch-ups'},
+  {code:'6080',name:'Locks, Keys & Access Control',      cat:'s', hst:'mixed', uses:'Locksmith, key fob, intercom, electronic access, security'},
+  {code:'6085',name:'Windows & Doors',                   cat:'m', hst:'mixed', uses:'Window cleaning, replacement, glazing, door hardware, weatherstripping'},
+  {code:'6090',name:'Concrete, Asphalt & Paving',        cat:'m', hst:'mixed', uses:'Driveway repair, sidewalk, crack fill, seal coat'},
+  {code:'6095',name:'Signage',                           cat:'m', hst:'mixed', uses:'Suite signs, directory, lobby directories, wayfinding'},
+  // UTILITIES
+  {code:'7010',name:'Hydro – Common Areas',              cat:'u', hst:'mixed', uses:'Shared electrical meters, parking, lobby, mechanical room'},
+  {code:'7015',name:'Gas – Common Areas / Heating',      cat:'u', hst:'mixed', uses:'Boiler gas, common area heating, pool heater'},
+  {code:'7020',name:'Water & Sewer',                     cat:'u', hst:'exempt', uses:'Municipal water and sewer charges — typically exempt from HST'},
+  {code:'7025',name:'Waste & Recycling',                 cat:'u', hst:'mixed', uses:'Garbage removal, recycling, organics, bin rental'},
+  {code:'7030',name:'Internet & Cable (Bulk)',           cat:'u', hst:'mixed', uses:'Building-wide internet, cable TV agreements, WiFi infrastructure'},
+  {code:'7035',name:'Telephone & Intercoms',             cat:'u', hst:'mixed', uses:'Building phones, lobby call panel, security monitoring lines'},
+  // INSURANCE
+  {code:'5510',name:'Property Insurance',                cat:'i', hst:'exempt', uses:'Building coverage — HST not applicable to insurance premiums in Ontario'},
+  {code:'5515',name:'General Liability Insurance',       cat:'i', hst:'exempt', uses:'Premises liability — HST exempt'},
+  {code:'5520',name:'Directors & Officers (D&O)',        cat:'i', hst:'exempt', uses:'Board/management liability — HST exempt'},
+  {code:'5525',name:'Boiler & Machinery',                cat:'i', hst:'exempt', uses:'Equipment breakdown insurance — HST exempt'},
+  {code:'5530',name:'Umbrella / Excess Liability',       cat:'i', hst:'exempt', uses:'Excess coverage — HST exempt'},
+  // MANAGEMENT & ADMIN
+  {code:'4010',name:'Management Fees',                   cat:'a', hst:'mixed', uses:'Monthly mgmt fee per agreement — HST on comm portion recoverable as ITC'},
+  {code:'5010',name:'Office & Administrative',           cat:'a', hst:'mixed', uses:'Paper, ink, postage, printing, meeting expenses'},
+  {code:'5015',name:'Software & Technology',             cat:'a', hst:'mixed', uses:'Property mgmt software, Yardi, Buildium, Microsoft 365, subscriptions'},
+  {code:'5020',name:'Bank Charges & Fees',               cat:'a', hst:'mixed', uses:'Monthly bank fees, NSF fees, wire transfers'},
+  {code:'5025',name:'Licenses & Permits',                cat:'a', hst:'mixed', uses:'Business license, pool permit, elevator certificate, sign permit'},
+  // PROFESSIONAL SERVICES
+  {code:'5110',name:'Legal Fees',                        cat:'p', hst:'mixed', uses:'Tenant disputes, lease review, collections, general counsel'},
+  {code:'5115',name:'Accounting & Audit',                cat:'p', hst:'mixed', uses:'Year-end audit, tax filings, bookkeeping, financial review'},
+  {code:'5120',name:'Reserve Fund Study',                cat:'p', hst:'mixed', uses:'Reserve study, component analysis, funding plan update'},
+  {code:'5125',name:'Engineering & Consulting',          cat:'p', hst:'mixed', uses:'Structural engineer, building condition assessment, drainage study'},
+  {code:'5130',name:'Environmental',                     cat:'p', hst:'mixed', uses:'Phase 1/2 ESA, asbestos survey, mould assessment, remediation'},
+  // CAPITAL
+  {code:'8010',name:'Capital Improvements – Building',   cat:'c', hst:'mixed', uses:'Major work extending useful life: new roof, lobby reno, building systems'},
+  {code:'8015',name:'Reserve Fund Expenditures',         cat:'c', hst:'mixed', uses:'Planned replacements from reserve: windows, roofing, parking structure'},
+  {code:'8020',name:'Furniture, Fixtures & Equipment',   cat:'c', hst:'mixed', uses:'Lobby furniture, appliances, capital equipment over threshold'},
+  {code:'9010',name:'Reserve Fund Transfer',             cat:'c', hst:'none',  uses:'Monthly operating-to-reserve transfer — not a taxable supply'},
+];
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('f-po').value = genPO();
+  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  renderRef(GL);
+  renderHist();
+});
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function genPO(){
+  const d=new Date();
+  return `PO-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}-${String(Math.floor(Math.random()*9000)+1000)}`;
+}
+function $c(id){return document.getElementById(id)}
+function fmt(n){return new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD'}).format(n||0)}
+function toast(msg,type=''){
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;t.textContent=msg;
+  $c('toasts').appendChild(t);
+  setTimeout(()=>t.remove(),3500);
 }
 
-function filterGLRef(query) {
-  const q = query.toLowerCase();
-  const filtered = q
-    ? GL_CODES.filter(gl =>
-        gl.code.includes(q) || gl.name.toLowerCase().includes(q) ||
-        gl.category.includes(q) || gl.uses.toLowerCase().includes(q) ||
-        (CAT_LABELS[gl.category] || '').toLowerCase().includes(q)
-      )
-    : GL_CODES;
-  renderGLRef(filtered);
+// ── INVOICE DROP ──────────────────────────────────────────────────────────────
+let invoiceFile=null, invoiceB64=null, invoiceMime=null;
+
+function dzOver(e){e.preventDefault();$c('drop-zone').classList.add('over')}
+function dzLeave(){$c('drop-zone').classList.remove('over')}
+function dzDrop(e){e.preventDefault();dzLeave();const f=e.dataTransfer.files[0];if(f)loadFile(f)}
+function fileSelected(inp){if(inp.files[0])loadFile(inp.files[0])}
+
+function loadFile(f){
+  invoiceFile=f;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const src=ev.target.result;
+    const thumb=$c('invoice-thumb');
+    if(f.type.startsWith('image/')){thumb.src=src;thumb.style.display='block'}
+    else{thumb.style.display='none'}
+    // base64
+    invoiceB64=src.split(',')[1];
+    invoiceMime=f.type||'image/jpeg';
+    $c('drop-zone').classList.add('has-file');
+    $c('drop-zone').querySelector('.drop-label').innerHTML=`<strong>${f.name}</strong><br><span style="font-size:12px">Ready to scan</span>`;
+    $c('scan-btn').disabled=false;
+  };
+  reader.readAsDataURL(f);
 }
 
-function toggleGLRef() {
-  const toggle = document.getElementById('gl-ref-toggle');
-  const body = document.getElementById('gl-ref-body');
-  toggle.classList.toggle('open');
-  body.classList.toggle('open');
+function clearInvoice(){
+  invoiceFile=invoiceB64=invoiceMime=null;
+  $c('invoice-thumb').style.display='none';
+  $c('invoice-thumb').src='';
+  $c('drop-zone').classList.remove('has-file','over');
+  $c('drop-zone').querySelector('.drop-label').innerHTML='<strong>Drop invoice here</strong> or click to browse<br><span style="font-size:12px;margin-top:4px;display:block">PNG · JPG · PDF · HEIC — Claude will auto-read all details</span>';
+  $c('scan-btn').disabled=true;
+  $c('scan-status').innerHTML='';
+  $c('file-input').value='';
 }
 
-// ── AI GL Suggestion ──────────────────────────────────────────────────────────
-let selectedGLCode = null;
-let selectedGLName = null;
+async function scanInvoice(){
+  if(!invoiceB64){toast('No file loaded','err');return}
+  $c('scan-btn').disabled=true;
+  $c('scan-status').innerHTML='<span class="scan-pill scanning"><span class="spin">⟳</span> Scanning…</span>';
 
-async function getSuggestion() {
-  const description = document.getElementById('po-description').value.trim();
-  const vendor = document.getElementById('po-vendor').value.trim();
-  const property = document.getElementById('po-property').value;
-  const department = document.getElementById('po-department').value;
-  const amount = document.getElementById('po-amount').value;
+  const prompt=`You are an accounts payable assistant for a Canadian property management company.
+Extract the following fields from this invoice image and return ONLY valid JSON, no markdown:
+{
+  "vendor": "string",
+  "invoiceNumber": "string or null",
+  "invoiceDate": "YYYY-MM-DD or null",
+  "totalAmount": number (numeric only, no $ sign),
+  "hstAmount": number or null,
+  "netAmount": number or null,
+  "description": "string — concise description of what was purchased or the work performed",
+  "unitOrSuite": "string or null — unit number, suite, or address if visible",
+  "notes": "string or null — any other relevant details like PO ref, work order, etc."
+}
+If a field is not visible, return null. Do not include any text outside the JSON object.`;
 
-  if (!description) {
-    showToast('Please enter a description of the purchase.', 'error');
-    return;
+  try{
+    const body={
+      model:MODEL,
+      max_tokens:600,
+      messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:invoiceMime,data:invoiceB64}},
+        {type:'text',text:prompt}
+      ]}]
+    };
+    const r=await callClaude(body);
+    const raw=r.content?.[0]?.text||'{}';
+    let d;
+    try{d=JSON.parse(raw)}catch{const m=raw.match(/\{[\s\S]*\}/);d=m?JSON.parse(m[0]):{}}
+
+    if(d.vendor)       $c('f-vendor').value=d.vendor;
+    if(d.invoiceNumber)$c('f-inv').value=d.invoiceNumber;
+    if(d.invoiceDate)  $c('f-date').value=d.invoiceDate;
+    if(d.totalAmount)  {$c('f-amt').value=d.totalAmount;amtChanged()}
+    if(d.description)  $c('f-desc').value=d.description;
+    if(d.unitOrSuite)  $c('f-notes').value=('Unit/Suite: '+d.unitOrSuite+(d.notes?'. '+d.notes:''));
+    else if(d.notes)   $c('f-notes').value=d.notes;
+    if(d.hstAmount&&d.netAmount){
+      $c('f-hst-in').value='no'; // net + HST separate
+    } else if(d.hstAmount){
+      $c('f-hst-in').value='yes';
+    }
+
+    $c('scan-status').innerHTML='<span class="scan-pill done">✓ Scanned</span>';
+    toast('Invoice scanned — review and confirm fields','ok');
+  }catch(e){
+    $c('scan-status').innerHTML=`<span class="scan-pill err">✗ ${e.message}</span>`;
+    toast(e.message,'err');
+  }finally{
+    $c('scan-btn').disabled=false;
   }
+}
 
-  // UI: loading
-  document.getElementById('suggest-btn').disabled = true;
-  document.getElementById('suggest-spinner').style.display = 'block';
-  document.getElementById('suggest-text').textContent = 'Analyzing...';
-  document.getElementById('suggestion-empty').style.display = 'none';
+// ── PROPERTY CHANGE ───────────────────────────────────────────────────────────
+function propChanged(){
+  const pid=$c('f-prop').value;
+  const allocRow=$c('alloc-row');
+  const manualRow=$c('manual-split-row');
+  if(!pid){allocRow.style.display='none';manualRow.style.display='none';hideAllocOut();return}
+  const p=PROPS[pid];
+  // populate alloc dropdown
+  const sel=$c('f-alloc');
+  sel.innerHTML=p.allocs.map(a=>`<option value="${a.id}">${a.label}</option>`).join('');
+  allocRow.style.display='';
+  allocChanged();
+}
 
-  const glList = GL_CODES.map(g => `${g.code} — ${g.name} (${g.uses})`).join('\n');
+function allocChanged(){
+  const pid=$c('f-prop').value;if(!pid)return;
+  const p=PROPS[pid];
+  const aid=$c('f-alloc').value;
+  const a=p.allocs.find(x=>x.id===aid)||p.allocs[0];
+  const manualRow=$c('manual-split-row');
+  if(a.id==='manual'){
+    manualRow.style.display='';
+  } else {
+    manualRow.style.display='none';
+  }
+  calcAlloc();
+}
 
-  const prompt = `You are a property management accounting specialist for Roxborough Communities, an HOA management company in Colorado.
+function manualSplitChanged(){
+  const r=parseFloat($c('f-resi-pct').value)||0;
+  const remain=(100-r).toFixed(2);
+  $c('f-comm-pct').value=remain;
+  calcAlloc();
+}
+function manualSplitCommChanged(){
+  const c=parseFloat($c('f-comm-pct').value)||0;
+  const remain=(100-c).toFixed(2);
+  $c('f-resi-pct').value=remain;
+  calcAlloc();
+}
 
-Your task: Suggest the most appropriate GL code(s) from our chart of accounts for the following purchase order.
+function amtChanged(){calcAlloc()}
 
-PURCHASE DETAILS:
-- Vendor: ${vendor || 'Not specified'}
-- Property: ${property || 'Not specified'}
-- Department: ${department || 'Not specified'}
-- Amount: ${amount ? formatCurrency(amount) : 'Not specified'}
-- Description: ${description}
+function hideAllocOut(){$c('alloc-empty').style.display='';$c('alloc-out').style.display='none'}
 
-OUR CHART OF ACCOUNTS:
+function getActiveSplit(){
+  const pid=$c('f-prop').value;if(!pid)return null;
+  const p=PROPS[pid];
+  const aid=$c('f-alloc').value;
+  const a=p.allocs.find(x=>x.id===aid)||p.allocs[0];
+  if(a.id==='manual'){
+    const r=parseFloat($c('f-resi-pct').value)||0;
+    const c=parseFloat($c('f-comm-pct').value)||0;
+    return {resi:r,comm:c,condo:0,note:'Manual split',label:'Manual Split'};
+  }
+  return {...a};
+}
+
+function calcAlloc(){
+  const pid=$c('f-prop').value;if(!pid){hideAllocOut();return}
+  const total=parseFloat($c('f-amt').value)||0;
+  if(!total){hideAllocOut();return}
+  const hstIn=$c('f-hst-in').value;
+  const split=getActiveSplit();if(!split)return;
+
+  // Derive net and hst amounts
+  let netTotal,hstTotal;
+  if(hstIn==='exempt'){netTotal=total;hstTotal=0}
+  else if(hstIn==='yes'){netTotal=total/(1+HST);hstTotal=total-netTotal}
+  else{netTotal=total;hstTotal=total*HST}
+
+  const p=PROPS[pid];
+  const rows=[];
+
+  // Build pool rows
+  const pools=[];
+  if(split.condo>0) pools.push({key:'condo',label:'Condo',pct:split.condo,hstType:'mixed'});
+  if(split.resi>0)  pools.push({key:'resi', label:'Residential',pct:split.resi, hstType:'resi'});
+  if(split.comm>0)  pools.push({key:'comm', label:'Commercial',pct:split.comm, hstType:'comm'});
+
+  let runNetTotal=0,runHstTotal=0,runGrossTotal=0;
+  pools.forEach(pool=>{
+    const pct=pool.pct/100;
+    const poolNet=parseFloat((netTotal*pct).toFixed(2));
+    let poolHst=0,poolGross=0,hstNote='';
+    if(hstIn==='exempt'){
+      poolHst=0;poolGross=poolNet;hstNote='Exempt';
+    } else if(pool.hstType==='resi'){
+      // resi: HST is a cost (no ITC), gross = net+hst expensed
+      poolHst=parseFloat((poolNet*HST).toFixed(2));
+      poolGross=poolNet+poolHst;
+      hstNote='Inclusive (cost)';
+    } else {
+      // comm/condo: ITC recoverable
+      poolHst=parseFloat((poolNet*HST).toFixed(2));
+      poolGross=poolNet; // expense only net, hst is ITC
+      hstNote='ITC recoverable';
+    }
+    runNetTotal+=poolNet;runHstTotal+=poolHst;
+    rows.push({...pool,poolNet,poolHst,poolGross,hstNote});
+  });
+
+  // Render
+  $c('alloc-empty').style.display='none';
+  $c('alloc-out').style.display='';
+  $c('alloc-summary').innerHTML=`<strong>${p.label}</strong> · ${split.label||''} · Invoice: <strong>${fmt(total)}</strong> ${hstIn==='exempt'?'(HST Exempt)':hstIn==='yes'?'(HST Included)':'(+ HST)'} · Net: <strong>${fmt(netTotal)}</strong> · HST: <strong>${fmt(hstTotal)}</strong>`;
+
+  const tbody=$c('alloc-tbody');
+  tbody.innerHTML=rows.map(r=>`
+    <tr>
+      <td><span class="hst-tag ${r.hstType==='resi'?'hst-resi':r.hstType==='comm'?'hst-comm':'hst-mixed'}">${r.label}</span></td>
+      <td class="pct-badge">${r.pct.toFixed(2)}%</td>
+      <td class="amt-cell">${fmt(r.poolNet)}</td>
+      <td class="hst-cell">${fmt(r.poolHst)}<br><span style="font-size:10px">${r.hstNote}</span></td>
+      <td class="${r.hstType==='comm'||r.hstType==='condo'?'itc-cell':'amt-cell'}">${r.hstType==='resi'?fmt(r.poolGross):fmt(r.poolNet)+' + ITC'}</td>
+    </tr>
+  `).join('')+`
+    <tr class="total-row">
+      <td colspan="2"><strong>TOTAL</strong></td>
+      <td class="amt-cell">${fmt(netTotal)}</td>
+      <td class="hst-cell">${fmt(hstTotal)}</td>
+      <td class="amt-cell">${fmt(total)}</td>
+    </tr>`;
+
+  $c('alloc-note').textContent=split.note||'';
+}
+
+// ── GL SUGGESTION ─────────────────────────────────────────────────────────────
+let selCode=null,selName=null;
+
+async function suggestGL(){
+  const desc=$c('f-desc').value.trim();
+  const vendor=$c('f-vendor').value.trim();
+  const pid=$c('f-prop').value;
+  if(!desc){toast('Enter a description first','err');return}
+
+  $c('gl-btn').disabled=true;
+  $c('gl-btn').textContent='Thinking…';
+  $c('gl-empty').style.display='none';
+  $c('gl-out').style.display='none';
+
+  const glList=GL.map(g=>`${g.code} — ${g.name} | ${g.uses}`).join('\n');
+  const propLabel=pid?PROPS[pid]?.label:'Not specified';
+  const propType=pid?PROPS[pid]?.type:'unknown';
+
+  const prompt=`You are a Canadian property management accountant. Suggest the best GL code(s) from the list below.
+Property: ${propLabel} (type: ${propType})
+Vendor: ${vendor||'not specified'}
+Description: ${desc}
+Amount: ${$c('f-amt').value||'not specified'}
+
+GL CODES:
 ${glList}
 
-Respond in valid JSON only, no markdown:
-{
-  "suggestions": [
-    {
-      "code": "XXXX",
-      "name": "Account Name",
-      "reason": "1-2 sentence explanation of why this code fits"
-    }
-  ],
-  "confidence": "high|medium|low",
-  "reasoning": "2-3 sentence overall explanation of your coding decision and any considerations the approver should know",
-  "primaryCode": "XXXX"
-}
+Reply ONLY in valid JSON, no markdown:
+{"suggestions":[{"code":"XXXX","name":"...","reason":"1-2 sentences"}],"confidence":"high|medium|low","reasoning":"2-3 sentences on coding decision and HST notes for this property type","primaryCode":"XXXX"}
+Return 1-3 suggestions, best first.`;
 
-Return 1-3 suggestions, most likely first.`;
+  try{
+    const r=await callClaude({model:MODEL,max_tokens:700,messages:[{role:'user',content:prompt}]});
+    const raw=r.content?.[0]?.text||'{}';
+    let d;try{d=JSON.parse(raw)}catch{const m=raw.match(/\{[\s\S]*\}/);d=m?JSON.parse(m[0]):{}}
+    if(!d.suggestions?.length)throw new Error('No suggestions returned');
 
-  try {
-    const apiKey = (typeof CONFIG !== 'undefined' && CONFIG.ANTHROPIC_API_KEY)
-      ? CONFIG.ANTHROPIC_API_KEY
-      : '';
-
-    if (!apiKey || apiKey.includes('YOUR_KEY')) {
-      throw new Error('API key not configured. Copy config.example.js to config.js and add your key.');
-    }
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-allow-browser': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 800,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `API error ${res.status}`);
-    }
-
-    const data = await res.json();
-    const rawText = data.content?.[0]?.text || '{}';
-
-    let parsed;
-    try {
-      parsed = JSON.parse(rawText);
-    } catch {
-      const match = rawText.match(/\{[\s\S]*\}/);
-      parsed = match ? JSON.parse(match[0]) : null;
-    }
-
-    if (!parsed?.suggestions?.length) throw new Error('Unexpected response format.');
-
-    renderSuggestions(parsed);
-
-  } catch (err) {
-    document.getElementById('suggestion-empty').style.display = 'block';
-    document.getElementById('suggestion-empty').innerHTML = `<div class="empty-icon">⚠️</div><strong>Error:</strong> ${err.message}`;
-    showToast(err.message, 'error');
-  } finally {
-    document.getElementById('suggest-btn').disabled = false;
-    document.getElementById('suggest-spinner').style.display = 'none';
-    document.getElementById('suggest-text').textContent = '✨ Suggest GL Code';
+    const conf=d.confidence||'medium';
+    $c('gl-conf').textContent=conf.charAt(0).toUpperCase()+conf.slice(1)+' Confidence';
+    $c('gl-conf').className=`conf-badge conf-${conf}`;
+    $c('gl-lines').innerHTML=d.suggestions.map((s,i)=>`
+      <div class="gl-line ${i===0?'sel':''}" onclick="pickGL('${s.code}','${s.name.replace(/'/g,"\\'")}',this)">
+        <span class="gl-chip">${s.code}</span>
+        <div class="gl-info"><div class="gl-name">${s.name}</div><div class="gl-why">${s.reason}</div></div>
+        <div class="radio-dot"></div>
+      </div>`).join('');
+    $c('gl-note').textContent=d.reasoning||'';
+    selCode=d.suggestions[0].code;selName=d.suggestions[0].name;
+    $c('sel-code').value=selCode;$c('sel-name').value=selName;
+    $c('gl-empty').style.display='none';$c('gl-out').style.display='';
+    $c('po-btn').disabled=false;
+  }catch(e){
+    $c('gl-empty').style.display='';
+    $c('gl-empty').innerHTML=`<div class="empty-ico">⚠️</div><strong>Error:</strong> ${e.message}`;
+    toast(e.message,'err');
+  }finally{
+    $c('gl-btn').disabled=false;$c('gl-btn').textContent='✨ Suggest GL Code';
   }
 }
 
-function renderSuggestions(parsed) {
-  const box = document.getElementById('suggestion-box');
-  const badge = document.getElementById('confidence-badge');
-  const suggestionsEl = document.getElementById('gl-suggestions');
-  const reasoning = document.getElementById('ai-reasoning');
-  const selectedDisplay = document.getElementById('selected-gl-display');
-
-  // Confidence badge
-  const conf = parsed.confidence || 'medium';
-  badge.textContent = conf.charAt(0).toUpperCase() + conf.slice(1) + ' Confidence';
-  badge.className = `confidence-badge confidence-${conf}`;
-
-  // Render GL lines
-  suggestionsEl.innerHTML = parsed.suggestions.map((s, i) => `
-    <div class="gl-line ${i === 0 ? 'selected' : ''}" onclick="selectGL('${s.code}', '${s.name.replace(/'/g, "\\'")}', this)">
-      <span class="gl-code-chip">${s.code}</span>
-      <div class="gl-line-info">
-        <div class="gl-line-name">${s.name}</div>
-        <div class="gl-line-reason">${s.reason}</div>
-      </div>
-      <div class="gl-select-indicator"></div>
-    </div>
-  `).join('');
-
-  reasoning.textContent = parsed.reasoning || '';
-
-  // Auto-select primary
-  const primary = parsed.suggestions[0];
-  selectedGLCode = primary.code;
-  selectedGLName = primary.name;
-
-  document.getElementById('selected-gl-code').value = primary.code;
-  document.getElementById('selected-gl-name').value = primary.name;
-  selectedDisplay.style.display = 'block';
-
-  document.getElementById('suggestion-empty').style.display = 'none';
-  box.classList.add('visible');
-  document.getElementById('generate-btn').disabled = false;
+function pickGL(code,name,el){
+  document.querySelectorAll('.gl-line').forEach(l=>l.classList.remove('sel'));
+  el.classList.add('sel');
+  selCode=code;selName=name;
+  $c('sel-code').value=code;$c('sel-name').value=name;
+  $c('po-btn').disabled=false;
 }
 
-function selectGL(code, name, el) {
-  document.querySelectorAll('.gl-line').forEach(l => l.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedGLCode = code;
-  selectedGLName = name;
-  document.getElementById('selected-gl-code').value = code;
-  document.getElementById('selected-gl-name').value = name;
-  document.getElementById('selected-gl-display').style.display = 'block';
-  document.getElementById('generate-btn').disabled = false;
-}
-
-// ── PO Generation ─────────────────────────────────────────────────────────────
-function generatePO() {
-  const glCode = document.getElementById('selected-gl-code').value.trim() || selectedGLCode;
-  const glName = document.getElementById('selected-gl-name').value.trim() || selectedGLName;
-
-  if (!glCode) {
-    showToast('Please get a GL suggestion first, or enter a GL code manually.', 'error');
-    return;
-  }
-
-  const poNumber    = document.getElementById('po-number').value;
-  const date        = document.getElementById('po-date').value;
-  const property    = document.getElementById('po-property').value || '—';
-  const vendor      = document.getElementById('po-vendor').value.trim() || '—';
-  const invoice     = document.getElementById('po-invoice').value.trim() || '—';
-  const description = document.getElementById('po-description').value.trim() || '—';
-  const amount      = parseFloat(document.getElementById('po-amount').value) || 0;
-  const department  = document.getElementById('po-department').value || '—';
-  const notes       = document.getElementById('po-notes').value.trim();
-
-  document.getElementById('preview-po-number').textContent = poNumber;
-  document.getElementById('preview-date').textContent = date ? new Date(date + 'T12:00:00').toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) : '—';
-  document.getElementById('preview-property').textContent = property;
-  document.getElementById('preview-invoice').textContent = invoice;
-  document.getElementById('preview-vendor').textContent = vendor;
-  document.getElementById('preview-department').textContent = department;
-  document.getElementById('preview-description').textContent = description;
-  document.getElementById('preview-gl-code').textContent = glCode;
-  document.getElementById('preview-gl-name').textContent = glName;
-  document.getElementById('preview-amount').textContent = formatCurrency(amount);
-  document.getElementById('preview-total').textContent = formatCurrency(amount);
-
-  const notesRow = document.getElementById('preview-notes-row');
-  if (notes) {
-    document.getElementById('preview-notes').textContent = notes;
-    notesRow.style.display = 'block';
-  } else {
-    notesRow.style.display = 'none';
-  }
-
-  document.getElementById('po-empty').style.display = 'none';
-  document.getElementById('po-preview').style.display = 'block';
-
-  showToast('Purchase order generated!', 'success');
-}
-
-function savePO() {
-  const glCode = document.getElementById('selected-gl-code').value.trim() || selectedGLCode;
-  if (!document.getElementById('po-preview').style.display || document.getElementById('po-preview').style.display === 'none') {
-    showToast('Generate a PO first.', 'error');
-    return;
-  }
-
-  const record = {
-    id: Date.now(),
-    po: document.getElementById('po-number').value,
-    date: document.getElementById('po-date').value,
-    vendor: document.getElementById('po-vendor').value.trim() || '—',
-    property: document.getElementById('po-property').value || '—',
-    description: document.getElementById('po-description').value.trim(),
-    glCode: document.getElementById('selected-gl-code').value.trim() || glCode,
-    glName: document.getElementById('selected-gl-name').value.trim() || selectedGLName,
-    amount: parseFloat(document.getElementById('po-amount').value) || 0,
-  };
-
-  const history = getHistory();
-  history.unshift(record);
-  localStorage.setItem('ro-po-history', JSON.stringify(history.slice(0, 50)));
-  renderHistory();
-  showToast('PO saved to history.', 'success');
-
-  // Reset form for next entry
-  document.getElementById('po-number').value = generatePONumber();
-}
-
-// ── History ───────────────────────────────────────────────────────────────────
-function getHistory() {
-  try { return JSON.parse(localStorage.getItem('ro-po-history') || '[]'); }
-  catch { return []; }
-}
-
-function renderHistory() {
-  const history = getHistory();
-  const container = document.getElementById('history-list');
-  const empty = document.getElementById('history-empty');
-
-  if (!history.length) {
-    if (empty) empty.style.display = 'block';
-    container.querySelectorAll('.history-item').forEach(el => el.remove());
-    return;
-  }
-
-  if (empty) empty.style.display = 'none';
-
-  container.querySelectorAll('.history-item').forEach(el => el.remove());
-
-  history.forEach(r => {
-    const div = document.createElement('div');
-    div.className = 'history-item';
-    div.innerHTML = `
-      <span class="history-po">${r.po}</span>
-      <div class="history-info">
-        <div class="history-vendor">${r.vendor}</div>
-        <div class="history-prop">${r.property} &bull; ${r.date || ''}</div>
-      </div>
-      <span class="history-gl">${r.glCode}</span>
-      <span class="history-amount">${formatCurrency(r.amount)}</span>
-    `;
-    container.appendChild(div);
+// ── CLAUDE API ────────────────────────────────────────────────────────────────
+async function callClaude(body){
+  if(!API_KEY||API_KEY==='YOUR_KEY_HERE')throw new Error('API key not configured — copy config.example.js to config.js');
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'x-api-key':API_KEY,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-allow-browser':'true'},
+    body:JSON.stringify(body)
   });
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e?.error?.message||`API error ${r.status}`)}
+  return r.json();
 }
 
-function clearHistory() {
-  if (!confirm('Clear all saved PO history?')) return;
-  localStorage.removeItem('ro-po-history');
-  renderHistory();
-  showToast('History cleared.');
+// ── PO GENERATION ─────────────────────────────────────────────────────────────
+function buildPO(){
+  const code=$c('sel-code').value.trim()||selCode;
+  const name=$c('sel-name').value.trim()||selName;
+  if(!code){toast('Get a GL suggestion or enter a GL code first','err');return}
+
+  const pid=$c('f-prop').value;
+  const split=getActiveSplit();
+  const total=parseFloat($c('f-amt').value)||0;
+  const hstIn=$c('f-hst-in').value;
+  const po=$c('f-po').value;
+  const date=$c('f-date').value;
+  const prop=pid?PROPS[pid]?.label:'—';
+  const vendor=$c('f-vendor').value.trim()||'—';
+  const inv=$c('f-inv').value.trim()||'—';
+  const desc=$c('f-desc').value.trim()||'—';
+  const notes=$c('f-notes').value.trim();
+  const allocLabel=split?split.label:'—';
+
+  let netTotal,hstTotal;
+  if(hstIn==='exempt'){netTotal=total;hstTotal=0}
+  else if(hstIn==='yes'){netTotal=total/(1+HST);hstTotal=total-netTotal}
+  else{netTotal=total;hstTotal=total*HST}
+
+  $c('pv-po').textContent=po;
+  $c('pv-date').textContent=date?new Date(date+'T12:00:00').toLocaleDateString('en-CA',{year:'numeric',month:'long',day:'numeric'}):'—';
+  $c('pv-prop').textContent=prop;
+  $c('pv-vendor').textContent=vendor;
+  $c('pv-inv').textContent=inv;
+  $c('pv-alloc').textContent=allocLabel;
+
+  // Build line rows per pool
+  const pools=[];
+  if(split){
+    if(split.condo>0)pools.push({label:'Condo',pct:split.condo,type:'condo'});
+    if(split.resi>0) pools.push({label:'Residential',pct:split.resi,type:'resi'});
+    if(split.comm>0) pools.push({label:'Commercial',pct:split.comm,type:'comm'});
+  } else {
+    pools.push({label:'—',pct:100,type:'mixed'});
+  }
+
+  let grandTotal=0;
+  const lines=pools.map(pool=>{
+    const pct=pool.pct/100;
+    const poolNet=parseFloat((netTotal*pct).toFixed(2));
+    let poolHst=0,hstLabel='—',lineTotal=0;
+    if(hstIn==='exempt'){poolHst=0;hstLabel='Exempt';lineTotal=poolNet}
+    else if(pool.type==='resi'){
+      poolHst=parseFloat((poolNet*HST).toFixed(2));
+      hstLabel=`${fmt(poolHst)} (cost)`;
+      lineTotal=poolNet+poolHst;
+    } else {
+      poolHst=parseFloat((poolNet*HST).toFixed(2));
+      hstLabel=`${fmt(poolHst)} ITC`;
+      lineTotal=poolNet;
+    }
+    grandTotal+=poolNet+(pool.type==='resi'?poolHst:0);
+    return `<tr>
+      <td>${desc}</td>
+      <td><span class="gl-chip">${code}</span></td>
+      <td><span class="hst-tag ${pool.type==='resi'?'hst-resi':pool.type==='comm'?'hst-comm':'hst-mixed'}" style="font-size:10.5px">${pool.label} ${pool.pct.toFixed(2)}%</span></td>
+      <td class="ra">${fmt(poolNet)}</td>
+      <td class="ra" style="font-size:12px;color:var(--muted)">${hstLabel}</td>
+      <td class="ra" style="font-weight:700">${fmt(lineTotal)}</td>
+    </tr>`;
+  });
+
+  $c('pv-lines').innerHTML=lines.join('');
+  $c('pv-total').textContent=fmt(grandTotal||total);
+
+  if(notes){$c('pv-notes').textContent=notes;$c('pv-notes-row').style.display=''}
+  else $c('pv-notes-row').style.display='none';
+
+  $c('po-empty').style.display='none';
+  $c('po-preview').style.display='';
+  toast('PO generated','ok');
 }
 
-// ── Clear Form ────────────────────────────────────────────────────────────────
-function clearForm() {
-  document.getElementById('po-number').value = generatePONumber();
-  document.getElementById('po-date').value = new Date().toISOString().split('T')[0];
-  ['po-property','po-vendor','po-invoice','po-description','po-amount','po-department','po-notes']
-    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+function savePO(){
+  if($c('po-preview').style.display==='none'){toast('Generate PO first','err');return}
+  const pid=$c('f-prop').value;
+  const rec={id:Date.now(),po:$c('f-po').value,date:$c('f-date').value,
+    vendor:$c('f-vendor').value.trim()||'—',
+    property:pid?PROPS[pid]?.label:'—',
+    glCode:$c('sel-code').value.trim()||selCode,
+    amount:parseFloat($c('f-amt').value)||0};
+  const h=getHist();h.unshift(rec);
+  localStorage.setItem('rcpo-hist',JSON.stringify(h.slice(0,60)));
+  renderHist();
+  toast('PO saved','ok');
+  $c('f-po').value=genPO();
+}
 
-  document.getElementById('suggestion-empty').style.display = 'block';
-  document.getElementById('suggestion-empty').innerHTML = `<div class="empty-icon">🔍</div>Fill in the purchase description and click <strong>Suggest GL Code</strong> to get an AI-powered recommendation.`;
-  document.getElementById('suggestion-box').classList.remove('visible');
-  document.getElementById('selected-gl-display').style.display = 'none';
-  document.getElementById('po-preview').style.display = 'none';
-  document.getElementById('po-empty').style.display = 'block';
-  document.getElementById('generate-btn').disabled = true;
-  selectedGLCode = null;
-  selectedGLName = null;
+// ── GL REFERENCE ──────────────────────────────────────────────────────────────
+const CATS={m:'Maintenance',u:'Utilities',a:'Admin',i:'Insurance',p:'Professional',c:'Capital',s:'Security',r:'Recreation'};
+const HST_LABELS={mixed:'Resi: cost · Comm: ITC',resi:'HST is a cost (no ITC)',comm:'ITC fully recoverable',exempt:'HST exempt',none:'Not applicable'};
+
+function renderRef(codes){
+  $c('ref-tbody').innerHTML=codes.map(g=>`
+    <tr>
+      <td><span class="gl-chip">${g.code}</span></td>
+      <td style="font-weight:600">${g.name}</td>
+      <td><span class="cat-badge cat-${g.cat}">${CATS[g.cat]||g.cat}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${HST_LABELS[g.hst]||g.hst}</td>
+      <td style="font-size:12px;color:var(--muted)">${g.uses}</td>
+    </tr>`).join('');
+}
+function filterRef(q){
+  q=q.toLowerCase();
+  renderRef(q?GL.filter(g=>g.code.includes(q)||g.name.toLowerCase().includes(q)||(CATS[g.cat]||'').toLowerCase().includes(q)||g.uses.toLowerCase().includes(q)):GL);
+}
+function toggleRef(){
+  $c('ref-toggle').classList.toggle('open');
+  $c('ref-body').classList.toggle('open');
+  $c('ref-arrow').textContent=$c('ref-body').classList.contains('open')?'▲':'▼';
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+function getHist(){try{return JSON.parse(localStorage.getItem('rcpo-hist')||'[]')}catch{return[]}}
+function renderHist(){
+  const h=getHist();
+  const el=$c('hist-list');
+  if(!h.length){el.innerHTML='<div class="empty" id="hist-empty"><div class="empty-ico">📂</div>No POs saved yet</div>';return}
+  el.innerHTML=h.map(r=>`
+    <div class="hist-row">
+      <span class="hist-po">${r.po}</span>
+      <div class="hist-info"><div class="hist-v">${r.vendor}</div><div class="hist-p">${r.property} · ${r.date||''}</div></div>
+      <span class="hist-gl">${r.glCode||'—'}</span>
+      <span class="hist-amt">${fmt(r.amount)}</span>
+    </div>`).join('');
+}
+function clearHist(){if(!confirm('Clear all history?'))return;localStorage.removeItem('rcpo-hist');renderHist();toast('History cleared')}
+
+// ── CLEAR FORM ────────────────────────────────────────────────────────────────
+function clearForm(){
+  ['f-vendor','f-inv','f-desc','f-amt','f-notes'].forEach(id=>$c(id).value='');
+  $c('f-prop').value='';$c('f-hst-in').value='yes';
+  $c('f-po').value=genPO();$c('f-date').value=new Date().toISOString().slice(0,10);
+  $c('alloc-row').style.display='none';$c('manual-split-row').style.display='none';
+  $c('gl-empty').style.display='';$c('gl-out').style.display='none';
+  $c('alloc-empty').style.display='';$c('alloc-out').style.display='none';
+  $c('po-preview').style.display='none';$c('po-empty').style.display='';
+  $c('po-btn').disabled=true;selCode=selName=null;
 }
 </script>
-
 </body>
 </html>
