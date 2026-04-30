@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PO GL Coding Assistant — Roxborough Communities</title>
+  <style>
+    :root {
+      --gold: #D4A84B;
+      --gold-light: #f0c96a;
+      --gold-dark: #a07830;
+      --navy: #1a2640;
+      --navy-light: #253450;
+      --bg: #f4f5f7;
+      --white: #ffffff;
+      --border: #dde1e8;
+      --text: #1e2630;
+      --text-muted: #6b7585;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --radius: 10px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.09);
+      --shadow-lg: 0 6px 30px rgba(0,0,0,0.13);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--navy);
+      color: var(--white);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .header-logo {
+      width: 38px;
+      height: 38px;
+      background: var(--gold);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: var(--navy);
+      letter-spacing: -1px;
+    }
+
+    .header-title h1 {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .header-title p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.55);
+      margin-top: 1px;
+    }
+
+    .header-badge {
+      background: rgba(212,168,75,0.18);
+      border: 1px solid rgba(212,168,75,0.4);
+      color: var(--gold-light);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .card-header h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-header h2 .icon {
+      width: 26px;
+      height: 26px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .card-body { padding: 20px; }
+
+    /* ── Form ── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .form-row.full { grid-template-columns: 1fr; }
+
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input, select, textarea {
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      padding: 9px 12px;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--white);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: inherit;
+      width: 100%;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(212,168,75,0.15);
+    }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    select { cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7585' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 34px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: var(--navy);
+    }
+
+    .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(212,168,75,0.4); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: var(--navy);
+      color: var(--white);
+    }
+
+    .btn-secondary:hover { background: var(--navy-light); transform: translateY(-1px); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--navy);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold-dark); }
+
+    .btn-danger { background: var(--error); color: white; }
+    .btn-danger:hover { filter: brightness(0.9); }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    /* ── GL Suggestion Output ── */
+    .suggestion-box {
+      background: linear-gradient(135deg, #fefdf6, #fffbf0);
+      border: 1.5px solid rgba(212,168,75,0.35);
+      border-radius: 9px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .suggestion-box.visible { display: block; }
+
+    .suggestion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .suggestion-header h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .confidence-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+
+    .confidence-high { background: #dcfce7; color: #166534; }
+    .confidence-medium { background: #fef9c3; color: #854d0e; }
+    .confidence-low { background: #fee2e2; color: #991b1b; }
+
+    .gl-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+
+    .gl-line:hover { border-color: var(--gold); background: #fffbf2; }
+    .gl-line.selected { border-color: var(--gold); background: linear-gradient(135deg,#fffbf0,#fef4d6); box-shadow: 0 0 0 2px rgba(212,168,75,0.2); }
+
+    .gl-code-chip {
+      background: var(--navy);
+      color: var(--gold-light);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 5px;
+      white-space: nowrap;
+      font-family: 'SF Mono', 'Consolas', monospace;
+    }
+
+    .gl-line-info { flex: 1; min-width: 0; }
+    .gl-line-name { font-size: 13.5px; font-weight: 600; color: var(--text); }
+    .gl-line-reason { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+    .gl-select-indicator {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      transition: all 0.12s;
+    }
+
+    .gl-line.selected .gl-select-indicator {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+
+    .ai-reasoning {
+      background: rgba(26,38,64,0.04);
+      border-radius: 7px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-top: 10px;
+    }
+
+    /* ── Loading spinner ── */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(26,38,64,0.2);
+      border-top-color: var(--navy);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── PO Preview ── */
+    #po-preview { display: none; }
+
+    .po-document {
+      border: 2px solid var(--border);
+      border-radius: 9px;
+      overflow: hidden;
+      font-size: 13px;
+    }
+
+    .po-doc-header {
+      background: var(--navy);
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .po-doc-header .po-company { font-size: 15px; font-weight: 700; }
+    .po-doc-header .po-tagline { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+    .po-doc-header .po-number-label { text-align: right; }
+    .po-doc-header .po-number-val { font-size: 20px; font-weight: 800; color: var(--gold-light); font-family: monospace; }
+    .po-doc-header .po-date { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+
+    .po-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .po-meta-block {
+      padding: 14px 20px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .po-meta-block:last-child { border-right: none; }
+    .po-meta-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 4px; }
+    .po-meta-value { font-size: 14px; font-weight: 600; color: var(--navy); }
+
+    .po-table { width: 100%; border-collapse: collapse; }
+    .po-table th {
+      background: #f8f9fb;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      padding: 10px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .po-table td {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .po-table tr:last-child td { border-bottom: none; }
+
+    .po-total-row {
+      background: linear-gradient(135deg,#fefdf6,#fff8e8);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 16px;
+      border-top: 2px solid var(--gold);
+    }
+
+    .po-total-label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    .po-total-amount { font-size: 22px; font-weight: 800; color: var(--navy); }
+
+    .po-approval {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      border-top: 1px solid var(--border);
+    }
+
+    .po-sig-block {
+      padding: 14px 20px;
+      border-right: 1px solid var(--border);
+    }
+
+    .po-sig-block:last-child { border-right: none; }
+    .po-sig-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+    .po-sig-line { border-bottom: 1px solid var(--text); margin-top: 22px; margin-bottom: 4px; }
+    .po-sig-name { font-size: 11px; color: var(--text-muted); }
+
+    /* ── GL Reference Table ── */
+    .gl-ref-section {
+      margin-top: 24px;
+    }
+
+    .gl-ref-toggle {
+      width: 100%;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+      box-shadow: var(--shadow);
+      transition: all 0.15s;
+    }
+
+    .gl-ref-toggle:hover { border-color: var(--gold); }
+
+    .gl-ref-toggle-icon {
+      transition: transform 0.2s;
+      color: var(--text-muted);
+    }
+
+    .gl-ref-toggle.open .gl-ref-toggle-icon { transform: rotate(180deg); }
+
+    .gl-ref-body {
+      display: none;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .gl-ref-body.open { display: block; }
+
+    .gl-ref-search {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .gl-ref-search input {
+      max-width: 340px;
+    }
+
+    .gl-ref-table { width: 100%; border-collapse: collapse; }
+
+    .gl-ref-table thead tr { background: #f8f9fb; }
+    .gl-ref-table th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .gl-ref-table td {
+      padding: 10px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid #f0f2f5;
+    }
+
+    .gl-ref-table tr:last-child td { border-bottom: none; }
+
+    .gl-ref-table tr:hover td { background: #fdfaf2; }
+
+    .gl-ref-table .cat-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .cat-maintenance { background: #dbeafe; color: #1d4ed8; }
+    .cat-utilities   { background: #dcfce7; color: #166534; }
+    .cat-admin       { background: #f3e8ff; color: #6b21a8; }
+    .cat-insurance   { background: #fef9c3; color: #854d0e; }
+    .cat-management  { background: #fce7f3; color: #9d174d; }
+    .cat-capital     { background: #e0f2fe; color: #075985; }
+    .cat-professional{ background: #fff7ed; color: #9a3412; }
+    .cat-recreation  { background: #f0fdf4; color: #14532d; }
+    .cat-security    { background: #fef2f2; color: #991b1b; }
+    .cat-reserve     { background: #f5f3ff; color: #4c1d95; }
+
+    /* ── History / Log ── */
+    .history-section { margin-top: 24px; }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f2f5;
+      font-size: 13px;
+      transition: background 0.1s;
+    }
+
+    .history-item:hover { background: #fafbfc; }
+    .history-item:last-child { border-bottom: none; }
+
+    .history-po { font-family: monospace; font-weight: 700; font-size: 12px; color: var(--navy); white-space: nowrap; }
+    .history-info { flex: 1; min-width: 0; }
+    .history-vendor { font-weight: 600; }
+    .history-prop { color: var(--text-muted); font-size: 12px; }
+    .history-gl { font-family: monospace; font-size: 12px; font-weight: 700; color: var(--gold-dark); white-space: nowrap; }
+    .history-amount { font-weight: 700; color: var(--navy); white-space: nowrap; }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px;
+      color: var(--text-muted);
+      font-size: 13.5px;
+    }
+
+    .empty-state .empty-icon { font-size: 32px; margin-bottom: 10px; }
+
+    /* ── Toast ── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 999;
+    }
+
+    .toast {
+      background: var(--navy);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      animation: toastIn 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 340px;
+    }
+
+    .toast.success { background: #166534; }
+    .toast.error { background: #991b1b; }
+
+    @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Print styles ── */
+    @media print {
+      header, .card:not(#po-card), .gl-ref-section, .history-section, .btn-row, .card-header .btn { display: none !important; }
+      #po-card { border: none; box-shadow: none; }
+      #po-preview { display: block !important; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <div class="header-logo">RC</div>
+    <div class="header-title">
+      <h1>PO GL Coding Assistant</h1>
+      <p>Roxborough Communities — Finance &amp; Accounting</p>
+    </div>
+  </div>
+  <span class="header-badge">AI-Powered</span>
+</header>
+
+<div class="container">
+
+  <div class="grid">
+
+    <!-- LEFT: PO Entry Form -->
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="icon">📋</span> New Purchase Order</h2>
+        <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;" onclick="clearForm()">Clear</button>
+      </div>
+      <div class="card-body">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>PO Number</label>
+            <input type="text" id="po-number" placeholder="Auto-generated" readonly style="background:#f8f9fb;cursor:default;" />
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="po-date" />
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Property / Community</label>
+            <select id="po-property">
+              <option value="">— Select property —</option>
+              <optgroup label="Roxborough Communities">
+                <option>Roxborough Village HOA</option>
+                <option>Roxborough Park HOA</option>
+                <option>Roxborough Highlands</option>
+              </optgroup>
+              <optgroup label="Other Managed Communities">
+                <option>Chatfield Farms HOA</option>
+                <option>Sterling Ranch Community</option>
+                <option>Plum Creek HOA</option>
+                <option>Crystal Valley Ranch</option>
+                <option>Meridian Ranch HOA</option>
+                <option>Saddle Rock Ridge HOA</option>
+                <option>Wolf Ranch HOA</option>
+                <option>Corporate / Admin</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vendor Name</label>
+            <input type="text" id="po-vendor" placeholder="e.g. Apex Landscaping" />
+          </div>
+          <div class="form-group">
+            <label>Invoice #</label>
+            <input type="text" id="po-invoice" placeholder="Optional" />
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Description of Work / Purchase</label>
+            <textarea id="po-description" placeholder="Describe what was purchased or the work performed. Be specific — e.g. 'Monthly pool chemical service and inspection for June' or 'Emergency pipe repair in building B restroom'"></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Amount ($)</label>
+            <input type="number" id="po-amount" placeholder="0.00" min="0" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label>Department</label>
+            <select id="po-department">
+              <option value="">— Optional —</option>
+              <option>Maintenance</option>
+              <option>Landscaping</option>
+              <option>Administration</option>
+              <option>Finance</option>
+              <option>Management</option>
+              <option>Capital Projects</option>
+              <option>Reserve Fund</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Notes / Additional Info</label>
+            <input type="text" id="po-notes" placeholder="Budget approval #, contract reference, etc." />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="getSuggestion()" id="suggest-btn">
+            <span id="suggest-spinner" class="spinner"></span>
+            <span id="suggest-text">✨ Suggest GL Code</span>
+          </button>
+          <button class="btn btn-secondary" onclick="generatePO()" id="generate-btn" disabled>
+            📄 Generate PO
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: GL Suggestion + PO Preview -->
+    <div style="display:flex;flex-direction:column;gap:24px;">
+
+      <!-- GL Suggestion -->
+      <div class="card">
+        <div class="card-header">
+          <h2><span class="icon">🧠</span> GL Code Suggestion</h2>
+        </div>
+        <div class="card-body">
+
+          <div id="suggestion-empty" class="empty-state">
+            <div class="empty-icon">🔍</div>
+            Fill in the purchase description and click <strong>Suggest GL Code</strong> to get an AI-powered recommendation.
+          </div>
+
+          <div id="suggestion-box" class="suggestion-box">
+            <div class="suggestion-header">
+              <h3>Recommended GL Codes</h3>
+              <span id="confidence-badge" class="confidence-badge"></span>
+            </div>
+            <div id="gl-suggestions"></div>
+            <div class="ai-reasoning" id="ai-reasoning"></div>
+          </div>
+
+          <div id="selected-gl-display" style="display:none;margin-top:12px;">
+            <label>Selected GL Code</label>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+              <input type="text" id="selected-gl-code" placeholder="GL Code" style="width:120px;font-family:monospace;font-weight:700;" />
+              <input type="text" id="selected-gl-name" placeholder="Account Name" style="flex:1;" />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- PO Preview -->
+      <div class="card" id="po-card">
+        <div class="card-header">
+          <h2><span class="icon">📄</span> Purchase Order Preview</h2>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;" onclick="window.print()">🖨 Print</button>
+            <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;" onclick="savePO()">💾 Save</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:16px;">
+
+          <div id="po-empty" class="empty-state">
+            <div class="empty-icon">📋</div>
+            Complete the form and click <strong>Generate PO</strong> to preview the purchase order.
+          </div>
+
+          <div id="po-preview">
+            <div class="po-document">
+              <div class="po-doc-header">
+                <div>
+                  <div class="po-company">Roxborough Communities</div>
+                  <div class="po-tagline">Property Management &amp; HOA Services</div>
+                </div>
+                <div class="po-number-label">
+                  <div style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.05em;">Purchase Order</div>
+                  <div class="po-number-val" id="preview-po-number"></div>
+                  <div class="po-date" id="preview-date"></div>
+                </div>
+              </div>
+              <div class="po-meta">
+                <div class="po-meta-block">
+                  <div class="po-meta-label">Property</div>
+                  <div class="po-meta-value" id="preview-property"></div>
+                </div>
+                <div class="po-meta-block">
+                  <div class="po-meta-label">Invoice #</div>
+                  <div class="po-meta-value" id="preview-invoice"></div>
+                </div>
+                <div class="po-meta-block">
+                  <div class="po-meta-label">Vendor</div>
+                  <div class="po-meta-value" id="preview-vendor"></div>
+                </div>
+                <div class="po-meta-block">
+                  <div class="po-meta-label">Department</div>
+                  <div class="po-meta-value" id="preview-department"></div>
+                </div>
+              </div>
+              <table class="po-table">
+                <thead>
+                  <tr>
+                    <th>Description</th>
+                    <th>GL Code</th>
+                    <th>Account</th>
+                    <th style="text-align:right;">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td id="preview-description"></td>
+                    <td><span id="preview-gl-code" class="gl-code-chip"></span></td>
+                    <td id="preview-gl-name" style="color:var(--text-muted);font-size:12px;"></td>
+                    <td style="text-align:right;font-weight:700;" id="preview-amount"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="po-total-row">
+                <span class="po-total-label">Total Amount</span>
+                <span class="po-total-amount" id="preview-total"></span>
+              </div>
+              <div id="preview-notes-row" style="padding:10px 20px;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border);display:none;">
+                <strong>Notes:</strong> <span id="preview-notes"></span>
+              </div>
+              <div class="po-approval">
+                <div class="po-sig-block">
+                  <div class="po-sig-label">Requested By</div>
+                  <div class="po-sig-line"></div>
+                  <div class="po-sig-name">Signature / Date</div>
+                </div>
+                <div class="po-sig-block">
+                  <div class="po-sig-label">Property Manager</div>
+                  <div class="po-sig-line"></div>
+                  <div class="po-sig-name">Signature / Date</div>
+                </div>
+                <div class="po-sig-block">
+                  <div class="po-sig-label">Finance Approval</div>
+                  <div class="po-sig-line"></div>
+                  <div class="po-sig-name">Signature / Date</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GL Reference Table -->
+  <div class="gl-ref-section">
+    <button class="gl-ref-toggle" id="gl-ref-toggle" onclick="toggleGLRef()">
+      <span style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:16px;">📊</span>
+        GL Code Reference Chart — Roxborough Communities Chart of Accounts
+      </span>
+      <span class="gl-ref-toggle-icon">▼</span>
+    </button>
+    <div class="gl-ref-body" id="gl-ref-body">
+      <div class="gl-ref-search">
+        <input type="text" placeholder="Search GL codes, account names, or categories..." oninput="filterGLRef(this.value)" />
+      </div>
+      <table class="gl-ref-table" id="gl-ref-table">
+        <thead>
+          <tr>
+            <th>GL Code</th>
+            <th>Account Name</th>
+            <th>Category</th>
+            <th>Common Uses</th>
+          </tr>
+        </thead>
+        <tbody id="gl-ref-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-section">
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="icon">🗂</span> Coded PO History</h2>
+        <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;" onclick="clearHistory()">Clear All</button>
+      </div>
+      <div id="history-list">
+        <div class="empty-state" id="history-empty">
+          <div class="empty-icon">📂</div>
+          No POs saved yet. Generate and save a PO to see it here.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="config.js"></script>
+<script>
+// ── GL Chart of Accounts ──────────────────────────────────────────────────────
+const GL_CODES = [
+  // Maintenance
+  { code: '6010', name: 'General Maintenance & Repairs', category: 'maintenance', uses: 'Miscellaneous repairs, handyman work, general upkeep' },
+  { code: '6015', name: 'Preventive Maintenance', category: 'maintenance', uses: 'Scheduled inspections, filter replacements, routine service contracts' },
+  { code: '6020', name: 'Landscaping & Grounds', category: 'maintenance', uses: 'Lawn care, tree trimming, fertilizing, sod replacement, mulch' },
+  { code: '6025', name: 'Snow Removal & Ice Control', category: 'maintenance', uses: 'Plowing, salting, shoveling, ice melt materials' },
+  { code: '6030', name: 'Pool & Spa Maintenance', category: 'maintenance', uses: 'Chemical service, pool cleaning, equipment repair, pump maintenance' },
+  { code: '6035', name: 'HVAC Maintenance & Repair', category: 'maintenance', uses: 'Heating, cooling, ventilation service, coil cleaning, refrigerant' },
+  { code: '6040', name: 'Plumbing Repairs', category: 'maintenance', uses: 'Pipe repairs, drain cleaning, fixture replacement, leak repairs' },
+  { code: '6045', name: 'Electrical Repairs', category: 'maintenance', uses: 'Lighting repairs, outlet replacement, panel work, exterior lighting' },
+  { code: '6050', name: 'Roofing & Gutters', category: 'maintenance', uses: 'Roof repairs, gutter cleaning, flashing, downspout work' },
+  { code: '6055', name: 'Painting & Caulking', category: 'maintenance', uses: 'Interior/exterior painting, caulking, staining, sealing' },
+  { code: '6060', name: 'Janitorial & Cleaning', category: 'maintenance', uses: 'Common area cleaning, pressure washing, window cleaning' },
+  { code: '6065', name: 'Pest Control', category: 'maintenance', uses: 'Exterminator services, rodent control, termite inspection' },
+  { code: '6070', name: 'Elevator Maintenance', category: 'maintenance', uses: 'Elevator service contracts, repairs, inspections, certification' },
+  { code: '6075', name: 'Asphalt & Concrete', category: 'maintenance', uses: 'Parking lot repair, driveway sealing, sidewalk repair, crack filling' },
+  { code: '6080', name: 'Fence & Gate Repair', category: 'maintenance', uses: 'Fence repair/replacement, gate operators, access control hardware' },
+  { code: '6085', name: 'Irrigation Systems', category: 'maintenance', uses: 'Sprinkler repair, backflow testing, irrigation controller service' },
+  { code: '6090', name: 'Signage', category: 'maintenance', uses: 'Community signs, directional signage, monument letters' },
+  // Utilities
+  { code: '7010', name: 'Electric — Common Areas', category: 'utilities', uses: 'Common area electricity, parking lot lighting, clubhouse power' },
+  { code: '7015', name: 'Natural Gas', category: 'utilities', uses: 'Gas service for clubhouse, pool heater, common area heating' },
+  { code: '7020', name: 'Water & Sewer', category: 'utilities', uses: 'Common area water, irrigation meter, sewer charges' },
+  { code: '7025', name: 'Trash & Recycling', category: 'utilities', uses: 'Dumpster service, bulk trash pickup, recycling containers' },
+  { code: '7030', name: 'Internet & Cable', category: 'utilities', uses: 'Bulk cable/internet agreements, WiFi hotspots, community TV' },
+  { code: '7035', name: 'Phone & Communications', category: 'utilities', uses: 'Office phones, gate call boxes, intercom systems' },
+  // Administrative
+  { code: '5010', name: 'Office Supplies', category: 'admin', uses: 'Paper, ink, toner, folders, stamps, envelopes' },
+  { code: '5015', name: 'Postage & Mailing', category: 'admin', uses: 'Certified mail, bulk mailings, annual meeting notices' },
+  { code: '5020', name: 'Printing & Copying', category: 'admin', uses: 'Newsletter printing, meeting packets, violation letters' },
+  { code: '5025', name: 'Software & Subscriptions', category: 'admin', uses: 'Property management software, Zoom, DocuSign, Microsoft 365' },
+  { code: '5030', name: 'Bank Fees & Charges', category: 'admin', uses: 'Monthly fees, wire fees, lockbox charges, returned check fees' },
+  { code: '5035', name: 'Licenses & Permits', category: 'admin', uses: 'Business licenses, pool permits, elevator certificates, trade permits' },
+  { code: '5040', name: 'Meetings & Events', category: 'admin', uses: 'Annual meeting venue, catering, board retreat, community events' },
+  // Management
+  { code: '4010', name: 'Management Fees', category: 'management', uses: 'Monthly property management fee per management agreement' },
+  { code: '4015', name: 'On-Site Staff', category: 'management', uses: 'Community manager, maintenance technician, concierge wages' },
+  { code: '4020', name: 'Payroll Taxes & Benefits', category: 'management', uses: 'FICA, unemployment, health insurance for on-site employees' },
+  // Insurance
+  { code: '5510', name: 'Property Insurance', category: 'insurance', uses: 'Building/common area property coverage' },
+  { code: '5515', name: 'General Liability Insurance', category: 'insurance', uses: 'Slip-and-fall, premises liability coverage' },
+  { code: '5520', name: 'Directors & Officers (D&O)', category: 'insurance', uses: 'Board member liability insurance' },
+  { code: '5525', name: 'Workers Compensation', category: 'insurance', uses: 'Workers comp for employees or contractors where required' },
+  { code: '5530', name: 'Umbrella Policy', category: 'insurance', uses: 'Excess liability umbrella coverage' },
+  // Professional Services
+  { code: '5110', name: 'Legal Fees', category: 'professional', uses: 'Attorney fees, collections, covenant enforcement, contract review' },
+  { code: '5115', name: 'Accounting & Audit', category: 'professional', uses: 'CPA fees, audit, tax return (Form 1120-H), bookkeeping' },
+  { code: '5120', name: 'Reserve Study', category: 'professional', uses: 'Reserve study update, component analysis, funding plan' },
+  { code: '5125', name: 'Engineering & Consulting', category: 'professional', uses: 'Structural inspection, building survey, drainage study' },
+  // Security
+  { code: '6510', name: 'Security Services', category: 'security', uses: 'Guard services, security patrol, off-duty officer' },
+  { code: '6515', name: 'Security Systems & Monitoring', category: 'security', uses: 'Camera systems, alarm monitoring, access control maintenance' },
+  // Recreation & Amenities
+  { code: '6610', name: 'Recreation Equipment', category: 'recreation', uses: 'Fitness equipment, playground equipment, sports courts' },
+  { code: '6615', name: 'Amenity Supplies', category: 'recreation', uses: 'Pool chemicals, fitness supplies, game room equipment' },
+  { code: '6620', name: 'Clubhouse Operations', category: 'recreation', uses: 'Clubhouse supplies, furniture, décor, kitchen items' },
+  // Capital & Reserve
+  { code: '8010', name: 'Capital Improvements', category: 'capital', uses: 'Major projects extending useful life: new roof, parking lot overlay' },
+  { code: '8015', name: 'Reserve Fund Expenditures', category: 'reserve', uses: 'Planned replacements funded by reserve: roofing, HVAC, painting' },
+  { code: '8020', name: 'Equipment Purchase', category: 'capital', uses: 'Riding mower, pressure washer, tools, vehicles over threshold' },
+  { code: '9010', name: 'Reserve Fund Transfer', category: 'reserve', uses: 'Monthly transfer from operating to reserve account' },
+];
+
+// ── Utility Functions ─────────────────────────────────────────────────────────
+function generatePONumber() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const seq = String(Math.floor(Math.random() * 9000) + 1000);
+  return `PO-${y}${m}-${seq}`;
+}
+
+function formatCurrency(val) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0);
+}
+
+function showToast(message, type = '') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+// ── Initialize ────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('po-number').value = generatePONumber();
+  document.getElementById('po-date').value = new Date().toISOString().split('T')[0];
+  renderGLRef(GL_CODES);
+  renderHistory();
+});
+
+// ── GL Reference Table ────────────────────────────────────────────────────────
+const CAT_LABELS = {
+  maintenance: 'Maintenance',
+  utilities:   'Utilities',
+  admin:       'Administrative',
+  management:  'Management',
+  insurance:   'Insurance',
+  professional:'Professional Svcs',
+  security:    'Security',
+  recreation:  'Recreation',
+  capital:     'Capital',
+  reserve:     'Reserve Fund',
+};
+
+function renderGLRef(codes) {
+  const tbody = document.getElementById('gl-ref-tbody');
+  tbody.innerHTML = codes.map(gl => `
+    <tr>
+      <td><span class="gl-code-chip">${gl.code}</span></td>
+      <td style="font-weight:600;">${gl.name}</td>
+      <td><span class="cat-badge cat-${gl.category}">${CAT_LABELS[gl.category] || gl.category}</span></td>
+      <td style="color:var(--text-muted);font-size:12px;">${gl.uses}</td>
+    </tr>
+  `).join('');
+}
+
+function filterGLRef(query) {
+  const q = query.toLowerCase();
+  const filtered = q
+    ? GL_CODES.filter(gl =>
+        gl.code.includes(q) || gl.name.toLowerCase().includes(q) ||
+        gl.category.includes(q) || gl.uses.toLowerCase().includes(q) ||
+        (CAT_LABELS[gl.category] || '').toLowerCase().includes(q)
+      )
+    : GL_CODES;
+  renderGLRef(filtered);
+}
+
+function toggleGLRef() {
+  const toggle = document.getElementById('gl-ref-toggle');
+  const body = document.getElementById('gl-ref-body');
+  toggle.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+// ── AI GL Suggestion ──────────────────────────────────────────────────────────
+let selectedGLCode = null;
+let selectedGLName = null;
+
+async function getSuggestion() {
+  const description = document.getElementById('po-description').value.trim();
+  const vendor = document.getElementById('po-vendor').value.trim();
+  const property = document.getElementById('po-property').value;
+  const department = document.getElementById('po-department').value;
+  const amount = document.getElementById('po-amount').value;
+
+  if (!description) {
+    showToast('Please enter a description of the purchase.', 'error');
+    return;
+  }
+
+  // UI: loading
+  document.getElementById('suggest-btn').disabled = true;
+  document.getElementById('suggest-spinner').style.display = 'block';
+  document.getElementById('suggest-text').textContent = 'Analyzing...';
+  document.getElementById('suggestion-empty').style.display = 'none';
+
+  const glList = GL_CODES.map(g => `${g.code} — ${g.name} (${g.uses})`).join('\n');
+
+  const prompt = `You are a property management accounting specialist for Roxborough Communities, an HOA management company in Colorado.
+
+Your task: Suggest the most appropriate GL code(s) from our chart of accounts for the following purchase order.
+
+PURCHASE DETAILS:
+- Vendor: ${vendor || 'Not specified'}
+- Property: ${property || 'Not specified'}
+- Department: ${department || 'Not specified'}
+- Amount: ${amount ? formatCurrency(amount) : 'Not specified'}
+- Description: ${description}
+
+OUR CHART OF ACCOUNTS:
+${glList}
+
+Respond in valid JSON only, no markdown:
+{
+  "suggestions": [
+    {
+      "code": "XXXX",
+      "name": "Account Name",
+      "reason": "1-2 sentence explanation of why this code fits"
+    }
+  ],
+  "confidence": "high|medium|low",
+  "reasoning": "2-3 sentence overall explanation of your coding decision and any considerations the approver should know",
+  "primaryCode": "XXXX"
+}
+
+Return 1-3 suggestions, most likely first.`;
+
+  try {
+    const apiKey = (typeof CONFIG !== 'undefined' && CONFIG.ANTHROPIC_API_KEY)
+      ? CONFIG.ANTHROPIC_API_KEY
+      : '';
+
+    if (!apiKey || apiKey.includes('YOUR_KEY')) {
+      throw new Error('API key not configured. Copy config.example.js to config.js and add your key.');
+    }
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-allow-browser': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 800,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `API error ${res.status}`);
+    }
+
+    const data = await res.json();
+    const rawText = data.content?.[0]?.text || '{}';
+
+    let parsed;
+    try {
+      parsed = JSON.parse(rawText);
+    } catch {
+      const match = rawText.match(/\{[\s\S]*\}/);
+      parsed = match ? JSON.parse(match[0]) : null;
+    }
+
+    if (!parsed?.suggestions?.length) throw new Error('Unexpected response format.');
+
+    renderSuggestions(parsed);
+
+  } catch (err) {
+    document.getElementById('suggestion-empty').style.display = 'block';
+    document.getElementById('suggestion-empty').innerHTML = `<div class="empty-icon">⚠️</div><strong>Error:</strong> ${err.message}`;
+    showToast(err.message, 'error');
+  } finally {
+    document.getElementById('suggest-btn').disabled = false;
+    document.getElementById('suggest-spinner').style.display = 'none';
+    document.getElementById('suggest-text').textContent = '✨ Suggest GL Code';
+  }
+}
+
+function renderSuggestions(parsed) {
+  const box = document.getElementById('suggestion-box');
+  const badge = document.getElementById('confidence-badge');
+  const suggestionsEl = document.getElementById('gl-suggestions');
+  const reasoning = document.getElementById('ai-reasoning');
+  const selectedDisplay = document.getElementById('selected-gl-display');
+
+  // Confidence badge
+  const conf = parsed.confidence || 'medium';
+  badge.textContent = conf.charAt(0).toUpperCase() + conf.slice(1) + ' Confidence';
+  badge.className = `confidence-badge confidence-${conf}`;
+
+  // Render GL lines
+  suggestionsEl.innerHTML = parsed.suggestions.map((s, i) => `
+    <div class="gl-line ${i === 0 ? 'selected' : ''}" onclick="selectGL('${s.code}', '${s.name.replace(/'/g, "\\'")}', this)">
+      <span class="gl-code-chip">${s.code}</span>
+      <div class="gl-line-info">
+        <div class="gl-line-name">${s.name}</div>
+        <div class="gl-line-reason">${s.reason}</div>
+      </div>
+      <div class="gl-select-indicator"></div>
+    </div>
+  `).join('');
+
+  reasoning.textContent = parsed.reasoning || '';
+
+  // Auto-select primary
+  const primary = parsed.suggestions[0];
+  selectedGLCode = primary.code;
+  selectedGLName = primary.name;
+
+  document.getElementById('selected-gl-code').value = primary.code;
+  document.getElementById('selected-gl-name').value = primary.name;
+  selectedDisplay.style.display = 'block';
+
+  document.getElementById('suggestion-empty').style.display = 'none';
+  box.classList.add('visible');
+  document.getElementById('generate-btn').disabled = false;
+}
+
+function selectGL(code, name, el) {
+  document.querySelectorAll('.gl-line').forEach(l => l.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedGLCode = code;
+  selectedGLName = name;
+  document.getElementById('selected-gl-code').value = code;
+  document.getElementById('selected-gl-name').value = name;
+  document.getElementById('selected-gl-display').style.display = 'block';
+  document.getElementById('generate-btn').disabled = false;
+}
+
+// ── PO Generation ─────────────────────────────────────────────────────────────
+function generatePO() {
+  const glCode = document.getElementById('selected-gl-code').value.trim() || selectedGLCode;
+  const glName = document.getElementById('selected-gl-name').value.trim() || selectedGLName;
+
+  if (!glCode) {
+    showToast('Please get a GL suggestion first, or enter a GL code manually.', 'error');
+    return;
+  }
+
+  const poNumber    = document.getElementById('po-number').value;
+  const date        = document.getElementById('po-date').value;
+  const property    = document.getElementById('po-property').value || '—';
+  const vendor      = document.getElementById('po-vendor').value.trim() || '—';
+  const invoice     = document.getElementById('po-invoice').value.trim() || '—';
+  const description = document.getElementById('po-description').value.trim() || '—';
+  const amount      = parseFloat(document.getElementById('po-amount').value) || 0;
+  const department  = document.getElementById('po-department').value || '—';
+  const notes       = document.getElementById('po-notes').value.trim();
+
+  document.getElementById('preview-po-number').textContent = poNumber;
+  document.getElementById('preview-date').textContent = date ? new Date(date + 'T12:00:00').toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) : '—';
+  document.getElementById('preview-property').textContent = property;
+  document.getElementById('preview-invoice').textContent = invoice;
+  document.getElementById('preview-vendor').textContent = vendor;
+  document.getElementById('preview-department').textContent = department;
+  document.getElementById('preview-description').textContent = description;
+  document.getElementById('preview-gl-code').textContent = glCode;
+  document.getElementById('preview-gl-name').textContent = glName;
+  document.getElementById('preview-amount').textContent = formatCurrency(amount);
+  document.getElementById('preview-total').textContent = formatCurrency(amount);
+
+  const notesRow = document.getElementById('preview-notes-row');
+  if (notes) {
+    document.getElementById('preview-notes').textContent = notes;
+    notesRow.style.display = 'block';
+  } else {
+    notesRow.style.display = 'none';
+  }
+
+  document.getElementById('po-empty').style.display = 'none';
+  document.getElementById('po-preview').style.display = 'block';
+
+  showToast('Purchase order generated!', 'success');
+}
+
+function savePO() {
+  const glCode = document.getElementById('selected-gl-code').value.trim() || selectedGLCode;
+  if (!document.getElementById('po-preview').style.display || document.getElementById('po-preview').style.display === 'none') {
+    showToast('Generate a PO first.', 'error');
+    return;
+  }
+
+  const record = {
+    id: Date.now(),
+    po: document.getElementById('po-number').value,
+    date: document.getElementById('po-date').value,
+    vendor: document.getElementById('po-vendor').value.trim() || '—',
+    property: document.getElementById('po-property').value || '—',
+    description: document.getElementById('po-description').value.trim(),
+    glCode: document.getElementById('selected-gl-code').value.trim() || glCode,
+    glName: document.getElementById('selected-gl-name').value.trim() || selectedGLName,
+    amount: parseFloat(document.getElementById('po-amount').value) || 0,
+  };
+
+  const history = getHistory();
+  history.unshift(record);
+  localStorage.setItem('ro-po-history', JSON.stringify(history.slice(0, 50)));
+  renderHistory();
+  showToast('PO saved to history.', 'success');
+
+  // Reset form for next entry
+  document.getElementById('po-number').value = generatePONumber();
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('ro-po-history') || '[]'); }
+  catch { return []; }
+}
+
+function renderHistory() {
+  const history = getHistory();
+  const container = document.getElementById('history-list');
+  const empty = document.getElementById('history-empty');
+
+  if (!history.length) {
+    if (empty) empty.style.display = 'block';
+    container.querySelectorAll('.history-item').forEach(el => el.remove());
+    return;
+  }
+
+  if (empty) empty.style.display = 'none';
+
+  container.querySelectorAll('.history-item').forEach(el => el.remove());
+
+  history.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.innerHTML = `
+      <span class="history-po">${r.po}</span>
+      <div class="history-info">
+        <div class="history-vendor">${r.vendor}</div>
+        <div class="history-prop">${r.property} &bull; ${r.date || ''}</div>
+      </div>
+      <span class="history-gl">${r.glCode}</span>
+      <span class="history-amount">${formatCurrency(r.amount)}</span>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function clearHistory() {
+  if (!confirm('Clear all saved PO history?')) return;
+  localStorage.removeItem('ro-po-history');
+  renderHistory();
+  showToast('History cleared.');
+}
+
+// ── Clear Form ────────────────────────────────────────────────────────────────
+function clearForm() {
+  document.getElementById('po-number').value = generatePONumber();
+  document.getElementById('po-date').value = new Date().toISOString().split('T')[0];
+  ['po-property','po-vendor','po-invoice','po-description','po-amount','po-department','po-notes']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+
+  document.getElementById('suggestion-empty').style.display = 'block';
+  document.getElementById('suggestion-empty').innerHTML = `<div class="empty-icon">🔍</div>Fill in the purchase description and click <strong>Suggest GL Code</strong> to get an AI-powered recommendation.`;
+  document.getElementById('suggestion-box').classList.remove('visible');
+  document.getElementById('selected-gl-display').style.display = 'none';
+  document.getElementById('po-preview').style.display = 'none';
+  document.getElementById('po-empty').style.display = 'block';
+  document.getElementById('generate-btn').disabled = true;
+  selectedGLCode = null;
+  selectedGLName = null;
+}
+</script>
+
+</body>
+</html>
