@@ -196,12 +196,18 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
 
 /* ── PRINT ── */
 @media print{
-  header,.no-print,#invoice-section,#gl-section,#hist-section,.brow,.card-h .btn{display:none!important}
-  body{background:#fff}
+  /* Hide every panel except the PO preview card */
+  header,.no-print,
+  #invoice-section,#gl-section,#hist-section{display:none!important}
+  /* .no-print covers: row-1 grid (invoice+form), GL reference, PO card-h buttons */
+  body{background:#fff;margin:0}
+  .wrap{padding:0}
   .card{border:none;box-shadow:none;margin:0}
+  #po-card{border:none;box-shadow:none}
   #po-preview{display:block!important}
   #po-empty{display:none!important}
   .po-doc{border:1px solid #ccc}
+  .po-total-bar,.po-terms,.po-sigs{page-break-inside:avoid}
 }
 </style>
 </head>
@@ -221,7 +227,7 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
 <div class="wrap">
 
 <!-- ══ ROW 1: Invoice Upload + PO Form ══ -->
-<div class="grid2">
+<div class="grid2 no-print">
 
   <!-- Invoice Upload -->
   <div id="invoice-section">
@@ -366,7 +372,8 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
         <div class="po-dh">
           <div>
             <div class="po-co">Roxborough Communities</div>
-            <div class="po-co-sub">Property Management &amp; Investments</div>
+            <div class="po-co-sub">Property Management</div>
+            <div class="po-co-sub" style="margin-top:3px;font-size:10px;opacity:.6;line-height:1.5">805-370 King St West, Box 35<br>Toronto, ON&nbsp;&nbsp;M5V 1J9</div>
           </div>
           <div class="po-num-wrap">
             <div class="po-num-lbl">Purchase Order</div>
@@ -404,7 +411,7 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
 </div>
 
 <!-- ══ GL REFERENCE ══ -->
-<div style="margin-bottom:22px">
+<div style="margin-bottom:22px" class="no-print">
   <button class="ref-toggle" id="ref-toggle" onclick="toggleRef()">
     <span style="display:flex;align-items:center;gap:10px"><span style="font-size:15px">📚</span>GL Code Reference — Roxborough Communities Chart of Accounts</span>
     <span id="ref-arrow">▼</span>
