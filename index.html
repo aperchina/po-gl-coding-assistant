@@ -718,15 +718,33 @@ Our PO number is a reference we add to the invoice — look for it labelled "PO#
 WORK DESCRIPTION — INVOICE BODY:
 Extract the actual work performed or items supplied from the line item description. Do not copy the billing address, PO number, or any header field. Example: "Replace main washroom sink faucet aerator — Moen p18".
 
-━━ PROPERTY DETECTION — FROM LINE ITEMS AND SERVICE ADDRESS ONLY ━━
-• "772 Queen St E Ltd", "772 Queen", "774 Queen", "776 Queen", "778 Queen", "778 Queen St E", "772/774/776/778 Queen Street E" → 772queen
-• "1133 Yonge Street Property Inc", "1133 Yonge Street", "1133 Yonge" → 1133yonge
-• "College Street Property Inc", "875/883/891/895/897/899 College Street", "897 College Street", "College West", OR "871"/"875"/"883"/"891"/"895"/"897"/"899" + "College" (NOT "901") → college
-• "901 College Ltd", "901 College St", "901 College" → 901college
-• "1924 Eglinton Ltd", "1924 Eglinton", "1928 Eglinton Ave W", "7 Fairbank Ave", "7 Fairbank", "Fairbank" → eglinton
-"370 King" is NEVER a property — ignore it completely.
+━━ PROPERTY DETECTION — STRICT PRIORITY ORDER — evaluate top to bottom, stop at first match ━━
+
+IGNORE ALWAYS (never a service address):
+"370 King St W" / "370 King St W Suite 805" = our management office billing address — skip entirely for detection.
+
+PRIORITY 1 — Queen Street East (highest priority, overrides everything):
+Any of the numbers 772, 774, 776, or 778 appearing near "Queen" or "Queen St E" in any field,
+OR "772 Queen St E Ltd" → detectedProperty = "772queen".
+Do NOT let a "College" or "Yonge" reference elsewhere on the same invoice override this.
+
+PRIORITY 2 — College St 871-899:
+"College Street Property Inc", "College West",
+OR street numbers 871/875/883/891/895/897/899 near "College" (NOT 901) → "college".
+Do NOT match plain "College" or "College St" without one of those specific numbers or company names.
+
+PRIORITY 3 — 901 College:
+"901 College Ltd", "901 College St", "901 College" → "901college".
+
+PRIORITY 4 — 1133 Yonge:
+"1133 Yonge Street Property Inc", "1133 Yonge Street", "1133 Yonge" → "1133yonge".
+
+PRIORITY 5 — Eglinton:
+"1924 Eglinton Ltd", "1924 Eglinton", "1928 Eglinton Ave W", "7 Fairbank Ave", "7 Fairbank", "Fairbank" → "eglinton".
+
+Set detectedProperty to null if no service-location signal is found after checking all priorities.
+
 COLLEGE ST CONDO UNITS: At College St 871-899, units in the 600-series (600–699, e.g. "Unit 601", "615-875 College") are CONDO units — set unitPool to 'condo'. All other College St units are residential — unitPool 'resi'.
-Set detectedProperty to null only if no service-location signal is found.
 
 Return null for any field not visible. Do not include text outside the JSON.`;
 
@@ -926,8 +944,9 @@ function calcAlloc(){
       poolHst=0;poolGross=poolNet;hstNote='Exempt';
     } else if(pool.hstType==='resi'){
       poolHst=parseFloat((poolNet*HST).toFixed(2));
-      // Use exact invoice total for single resi pool to avoid rounding gap
-      poolGross=singleResi?total:poolNet+poolHst;
+      // Rounding shortcut only when HST is already baked into the entered total;
+      // when hstIn==='no' total is the NET so gross must be computed, not copied.
+      poolGross=(singleResi&&hstIn==='yes')?total:poolNet+poolHst;
       hstNote='Inclusive (cost)';
     } else {
       poolHst=parseFloat((poolNet*HST).toFixed(2));
@@ -1151,14 +1170,15 @@ function buildPO(){
     else if(pool.type==='resi'){
       poolHst=parseFloat((poolNet*HST).toFixed(2));
       hstLabel=`${fmt(poolHst)} (cost)`;
-      // Use exact invoice total for single resi to eliminate rounding gap
-      lineTotal=singleResiPO?total:poolNet+poolHst;
+      // Rounding shortcut only when total already includes HST; when hstIn==='no'
+      // total is net so gross must be computed.
+      lineTotal=(singleResiPO&&hstIn==='yes')?total:poolNet+poolHst;
     } else {
       poolHst=parseFloat((poolNet*HST).toFixed(2));
       hstLabel=`${fmt(poolHst)} ITC`;
       lineTotal=poolNet;
     }
-    grandTotal+=singleResiPO?total:(poolNet+(pool.type==='resi'?poolHst:0));
+    grandTotal+=(singleResiPO&&hstIn==='yes')?total:(poolNet+(pool.type==='resi'?poolHst:0));
     return `<tr>
       <td>${desc}</td>
       <td><span class="gl-chip">${code}</span></td>
