@@ -27,8 +27,20 @@ module.exports = async function handler(req, res) {
             block.source?.media_type === 'application/pdf'
           ) {
             const buf = Buffer.from(block.source.data, 'base64');
-            const parsed = await pdfParse(buf);
-            return { type: 'text', text: parsed.text };
+            let pageCount = 0;
+            const parsed = await pdfParse(buf, {
+              max: 0,
+              pagerender: function(pageData) {
+                pageCount++;
+                const num = pageCount;
+                return pageData.getTextContent().then(function(tc) {
+                  const text = tc.items.map(function(item) { return item.str; }).join(' ');
+                  return `\n\n--- PAGE ${num} ---\n${text}`;
+                });
+              }
+            });
+            const text = `[PDF — ${pageCount} page(s)]\n${parsed.text}`;
+            return { type: 'text', text };
           }
           return block;
         }));

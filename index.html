@@ -238,6 +238,7 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
           <button class="btn btn-gold" onclick="scanInvoice()" id="scan-btn" disabled>✨ Scan with Claude</button>
           <button class="btn btn-ghost" onclick="clearInvoice()">✕ Clear</button>
         </div>
+        <div id="desc-flag-warn" style="display:none;margin-top:8px;background:#fef3c7;border:1px solid #fcd34d;border-left:3px solid #f59e0b;border-radius:7px;padding:9px 13px;font-size:12.5px;color:#92400e"></div>
       </div>
     </div>
   </div>
@@ -287,8 +288,8 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
         </div>
         <div class="frow c1" id="unit-alloc-banner" style="display:none">
           <div style="background:#dcfce7;border:1px solid #86efac;border-radius:7px;padding:9px 13px;font-size:13px;color:#166534;width:100%">
-            <strong>100% Residential — Unit-Specific</strong><br>
-            <span style="font-size:12px">Repair to <span id="unit-alloc-label" style="font-weight:600"></span> — full gross amount, HST inclusive (non-recoverable). <em>Common-area work? Clear the invoice and re-scan, or use the Clear button to reset.</em></span>
+            <strong id="unit-alloc-title">100% Residential — Unit-Specific</strong><br>
+            <span style="font-size:12px">Repair to <span id="unit-alloc-label" style="font-weight:600"></span> — <span id="unit-alloc-hst">full gross amount, HST inclusive (non-recoverable).</span> <em>Common-area work? Clear the invoice and re-scan, or use the Clear button to reset.</em></span>
           </div>
         </div>
         <div class="frow c2" id="manual-split-row" style="display:none">
@@ -634,7 +635,7 @@ function toast(msg,type=''){
 }
 
 // ── INVOICE DROP ──────────────────────────────────────────────────────────────
-let invoiceFile=null, invoiceB64=null, invoiceMime=null, invoiceServiceUnit=null;
+let invoiceFile=null, invoiceB64=null, invoiceMime=null, invoiceServiceUnit=null, invoiceUnitPool=null;
 
 function dzOver(e){e.preventDefault();$c('drop-zone').classList.add('over')}
 function dzLeave(){$c('drop-zone').classList.remove('over')}
@@ -660,13 +661,14 @@ function loadFile(f){
 }
 
 function clearInvoice(){
-  invoiceFile=invoiceB64=invoiceMime=invoiceServiceUnit=null;
+  invoiceFile=invoiceB64=invoiceMime=invoiceServiceUnit=invoiceUnitPool=null;
   $c('invoice-thumb').style.display='none';
   $c('invoice-thumb').src='';
   $c('drop-zone').classList.remove('has-file','over');
   $c('drop-zone').querySelector('.drop-label').innerHTML='<strong>Drop invoice here</strong> or click to browse<br><span style="font-size:12px;margin-top:4px;display:block">PNG · JPG · PDF · HEIC — Claude will auto-read all details</span>';
   $c('scan-btn').disabled=true;
   $c('scan-status').innerHTML='';
+  $c('desc-flag-warn').style.display='none';
   $c('file-input').value='';
 }
 
@@ -687,6 +689,8 @@ Extract the following fields from this invoice and return ONLY valid JSON, no ma
   "netAmount": number or null,
   "serviceUnit": "unit/suite extracted from LINE ITEMS only — e.g. 'Unit 701, 7 Fairbank Ave' or '404-875 College St' — null if absent",
   "workDescription": "actual description of work or items from the invoice body/line items — e.g. 'Replace main washroom sink faucet aerator — Moen p18' — null if absent",
+  "unitPool": "pool for identified serviceUnit — 'condo' if unit is 600-699 series at College St 871-899, otherwise 'resi' for any other unit; null if no serviceUnit",
+  "descriptionFlag": "null if work is clearly described; if description is vague ('labour only as per work order', 'repairs per WO', 'as per quote', 'see attached') without specifying actual work performed, set to: 'Description is vague — update with specific work performed before posting'",
   "detectedProperty": "one of: 772queen | 1133yonge | college | eglinton | 901college | null"
 }
 
@@ -707,10 +711,11 @@ Extract the actual work performed or items supplied from the line item descripti
 ━━ PROPERTY DETECTION — FROM LINE ITEMS AND SERVICE ADDRESS ONLY ━━
 • "772 Queen", "774 Queen", "776 Queen" → 772queen
 • "1133 Yonge" → 1133yonge
-• "871", "875", "883", "891", "895", or "899" + "College" (NOT "901") → college
+• "871", "875", "883", "891", "895", "897", or "899" + "College" (NOT "901"), OR "College Street Property Inc", OR "College West" → college
 • "901 College" → 901college
 • "1924 Eglinton", "Fairbank", "7 Fairbank", "7 Fairbank Ave" in line items → eglinton
 "370 King" is NEVER a property — ignore it completely.
+COLLEGE ST CONDO UNITS: At College St 871-899, units in the 600-series (600–699, e.g. "Unit 601", "615-875 College") are CONDO units — set unitPool to 'condo'. All other College St units are residential — unitPool 'resi'.
 Set detectedProperty to null only if no service-location signal is found.
 
 Return null for any field not visible. Do not include text outside the JSON.`;
@@ -730,6 +735,14 @@ Return null for any field not visible. Do not include text outside the JSON.`;
     try{d=JSON.parse(raw)}catch{const m=raw.match(/\{[\s\S]*\}/);d=m?JSON.parse(m[0]):{}}
 
     invoiceServiceUnit = d.serviceUnit || null;
+    invoiceUnitPool = d.unitPool || null;
+
+    if(d.descriptionFlag){
+      $c('desc-flag-warn').textContent = '⚠️ ' + d.descriptionFlag;
+      $c('desc-flag-warn').style.display = '';
+    } else {
+      $c('desc-flag-warn').style.display = 'none';
+    }
 
     if(d.vendor)          $c('f-vendor').value=d.vendor;
     if(d.invoiceNumber)   $c('f-inv').value=d.invoiceNumber;
@@ -778,9 +791,16 @@ function propChanged(){
   const unitBanner=$c('unit-alloc-banner');
   if(!pid){allocRow.style.display='none';manualRow.style.display='none';unitBanner.style.display='none';hideAllocOut();return}
   if(invoiceServiceUnit){
-    // Unit-specific repair → 100% resi, no allocation schedule needed
+    // Unit-specific repair → 100% to that unit's pool, no allocation schedule
     allocRow.style.display='none';manualRow.style.display='none';
     $c('unit-alloc-label').textContent=invoiceServiceUnit;
+    if(invoiceUnitPool==='condo'){
+      $c('unit-alloc-title').textContent='100% Condo — Unit-Specific';
+      $c('unit-alloc-hst').textContent='full gross amount, HST inclusive (condo unit cost).';
+    } else {
+      $c('unit-alloc-title').textContent='100% Residential — Unit-Specific';
+      $c('unit-alloc-hst').textContent='full gross amount, HST inclusive (non-recoverable).';
+    }
     unitBanner.style.display='';
     calcAlloc();
   } else {
@@ -826,8 +846,11 @@ function hideAllocOut(){$c('alloc-empty').style.display='';$c('alloc-out').style
 
 function getActiveSplit(){
   const pid=$c('f-prop').value;if(!pid)return null;
-  // Unit-specific repair always overrides to 100% residential
+  // Unit-specific repair overrides to 100% of that unit's pool
   if(invoiceServiceUnit){
+    if(invoiceUnitPool==='condo'){
+      return {resi:0,comm:0,condo:100,label:'100% Condo (unit-specific)',note:`Repair to ${invoiceServiceUnit} — 100% condo pool. HST is a cost for condo unit repairs. No resi/comm split.`};
+    }
     return {resi:100,comm:0,condo:0,label:'100% Residential (unit-specific)',note:`Repair to ${invoiceServiceUnit} — 100% residential, HST inclusive (non-recoverable). No commercial split.`};
   }
   const p=PROPS[pid];
@@ -963,6 +986,18 @@ AMOUNT: ${$c('f-amt').value||'not specified'}
    • Code 1850-1000: "BALANCE SHEET CODE — Manager approval required"
    • Code 7050-1000: "Manager approval required"
    • Any capital/replacement situation: "May be capital — confirm with Controller before posting as operating expense"
+
+5. WORK TYPE HINTS:
+   • "no heat", "heat not working", "heating not working", "no hot water (boiler)" = HVAC fault/callback → 7000-3020 resi or 6100-1100 comm
+   • "no AC", "AC not working", "not cooling", "no air conditioning" = AC fault → 7000-3010 resi or 6100-1000 comm
+   • "no power", "breaker tripped", "lights out" = electrical fault → 7000-3030 resi or 6100-2000 comm
+   • "elevator stuck", "elevator callback" = elevator fault → 7000-3040 resi or 6100-2100 comm
+
+6. UNIT-SPECIFIC OVERRIDE:
+   If the work is for a specific suite/unit, the cost is 100% that unit's pool — never apply a building-wide split:
+   • Residential unit → 100% resi code (7000-3xxx)
+   • Condo unit at College St (600-699 series) → condo pool, use residential R&M codes
+   • Commercial unit → 100% comm code (6100-xxxx)
 
 ━━ YARDI GL CODE LIST (use ONLY codes from this list) ━━
 ${glList}
@@ -1160,7 +1195,8 @@ function clearHist(){if(!confirm('Clear all history?'))return;localStorage.remov
 
 // ── CLEAR FORM ────────────────────────────────────────────────────────────────
 function clearForm(){
-  invoiceServiceUnit=null;
+  invoiceServiceUnit=invoiceUnitPool=null;
+  $c('desc-flag-warn').style.display='none';
   ['f-vendor','f-inv','f-desc','f-amt','f-notes'].forEach(id=>$c(id).value='');
   $c('f-prop').value='';$c('f-hst-in').value='yes';
   $c('f-po').value=genPO();$c('f-date').value=new Date().toISOString().slice(0,10);
