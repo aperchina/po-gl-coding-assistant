@@ -413,10 +413,8 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
 </div><!-- /wrap -->
 <div id="toasts"></div>
 
-<script src="config.js"></script>
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-const API_KEY = (typeof CONFIG !== 'undefined') ? CONFIG.ANTHROPIC_API_KEY : 'YOUR_KEY_HERE';
 const MODEL   = 'claude-haiku-4-5-20251001';
 const HST     = 0.13;
 
@@ -842,10 +840,9 @@ function pickGL(code,name,el){
 
 // ── CLAUDE API ────────────────────────────────────────────────────────────────
 async function callClaude(body){
-  if(!API_KEY||API_KEY==='YOUR_KEY_HERE')throw new Error('API key not configured — copy config.example.js to config.js');
-  const r=await fetch('https://api.anthropic.com/v1/messages',{
+  const r=await fetch('/api/claude',{
     method:'POST',
-    headers:{'x-api-key':API_KEY,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-allow-browser':'true'},
+    headers:{'content-type':'application/json'},
     body:JSON.stringify(body)
   });
   if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e?.error?.message||`API error ${r.status}`)}
