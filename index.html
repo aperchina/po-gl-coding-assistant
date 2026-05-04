@@ -461,10 +461,13 @@ const PROPS = {
     resi:71793, comm:17867, condo:28006,
     tenants: ['Loblaws','Bone and Biscuit','Blood and Bandages Barbershop'],
     allocs: [
-      { id:'equalSplit',   label:'Equal Split',         condo:24.37, resi:60.10, comm:15.53, note:'Equal area-weighted split across all three pools' },
-      { id:'resiWeighted', label:'Resi-Weighted',        condo:27.98, resi:68.99, comm:3.03,  note:'Residential-weighted — use for unit-specific services (elevators, corridor, etc.)' },
-      { id:'hvac',         label:'HVAC',                 condo:30.41, resi:59.46, comm:10.13, note:'HVAC system allocation based on equipment serving each pool' },
-      { id:'parking',      label:'Parking',              condo:64.29, resi:31.72, comm:3.99,  note:'Parking allocation weighted to condo-owned stalls' },
+      { id:'equalSplit',      label:'Equal Split — Snow / Electrical / Fire / Plumbing / Exterior', condo:24.37,   resi:60.10,   comm:15.53,   note:'Equal area-weighted split — snow removal, electrical, plumbing, exterior/roof, pest control, fire systems, water/sewer, insurance' },
+      { id:'resiWeighted',    label:'Resi-Weighted — Landscaping / Elevator / Janitorial',          condo:27.975,  resi:68.9947, comm:3.0303,  note:'Residential-weighted — landscaping, elevator, janitorial/concierge, window cleaning, waste removal, bank charges' },
+      { id:'hvac',            label:'HVAC',                                                          condo:30.41,   resi:59.46,   comm:10.13,   note:'HVAC system allocation based on equipment serving each pool' },
+      { id:'parking',         label:'Parking / Garage',                                              condo:64.29,   resi:31.72,   comm:3.99,    note:'Parking allocation weighted to condo-owned stalls' },
+      { id:'hallway',         label:'Hallway Services — Carpet / Dust Control',                      condo:20,      resi:80,      comm:0,       note:'Carpet cleaning and dust control mats in corridors — condo/resi only, no commercial' },
+      { id:'amenityInternet', label:'Amenity Internet & Cable — Suite Split',                        condo:20.5357, resi:79.4643, comm:0,       note:'In-suite internet and cable by suite count — condo/resi only, no commercial' },
+      { id:'propertyTax',     label:'Property Tax Allocation',                                       condo:3.944,   resi:57.9379, comm:38.1181, note:'Municipal property tax by assessed value — use for property tax entries only, not operating costs' },
     ],
   },
   'eglinton': {
@@ -709,11 +712,11 @@ WORK DESCRIPTION — INVOICE BODY:
 Extract the actual work performed or items supplied from the line item description. Do not copy the billing address, PO number, or any header field. Example: "Replace main washroom sink faucet aerator — Moen p18".
 
 ━━ PROPERTY DETECTION — FROM LINE ITEMS AND SERVICE ADDRESS ONLY ━━
-• "772 Queen", "774 Queen", "776 Queen" → 772queen
-• "1133 Yonge" → 1133yonge
-• "871", "875", "883", "891", "895", "897", or "899" + "College" (NOT "901"), OR "College Street Property Inc", OR "College West" → college
-• "901 College" → 901college
-• "1924 Eglinton", "Fairbank", "7 Fairbank", "7 Fairbank Ave" in line items → eglinton
+• "772 Queen St E Ltd", "772 Queen", "774 Queen", "776 Queen", "772/774/776 Queen Street E" → 772queen
+• "1133 Yonge Street Property Inc", "1133 Yonge Street", "1133 Yonge" → 1133yonge
+• "College Street Property Inc", "875/883/891/895/897/899 College Street", "897 College Street", "College West", OR "871"/"875"/"883"/"891"/"895"/"897"/"899" + "College" (NOT "901") → college
+• "901 College Ltd", "901 College St", "901 College" → 901college
+• "1924 Eglinton Ltd", "1924 Eglinton", "1928 Eglinton Ave W", "7 Fairbank Ave", "7 Fairbank", "Fairbank" → eglinton
 "370 King" is NEVER a property — ignore it completely.
 COLLEGE ST CONDO UNITS: At College St 871-899, units in the 600-series (600–699, e.g. "Unit 601", "615-875 College") are CONDO units — set unitPool to 'condo'. All other College St units are residential — unitPool 'resi'.
 Set detectedProperty to null only if no service-location signal is found.
@@ -975,10 +978,14 @@ AMOUNT: ${$c('f-amt').value||'not specified'}
    • 772 Queen St E (mixed — resi 8,517 sf / comm 16,148 sf): systems are separate. For fire/backflow ONLY → auto sqft split 34.54% resi / 65.46% comm. All other work → specify which component (resi or comm) was served.
    • 1133 Yonge St: 100% commercial, all HST fully recoverable as ITC.
    • College St 871–899 (mixed3 — resi 71,793 / comm 17,867 / condo 28,006 sf):
-       – equalSplit (electrical/plumbing/exterior/pest/fire/snow/water/insurance): condo 24.37% / resi 60.10% / comm 15.53%
-       – resiWeighted (elevator/landscaping/janitorial/concierge/window/waste/bank): condo 27.98% / resi 68.99% / comm 3.03%
-       – hvac (HVAC and gas): condo 30.41% / resi 59.46% / comm 10.13%
-       – parking (garage): condo 64.29% / resi 31.72% / comm 3.99%
+       – equalSplit — snow removal, electrical, plumbing, exterior/roof, pest, fire, water/sewer, insurance: condo 24.37% / resi 60.10% / comm 15.53%
+       – resiWeighted — landscaping, elevator, janitorial/concierge, window cleaning, waste, bank charges: condo 27.975% / resi 68.9947% / comm 3.0303%
+       – hvac — HVAC and gas: condo 30.41% / resi 59.46% / comm 10.13%
+       – parking — garage/parking: condo 64.29% / resi 31.72% / comm 3.99%
+       – hallway — carpet cleaning, dust control mats in corridors: condo 20% / resi 80% / comm 0%
+       – amenityInternet — in-suite internet and cable: condo 20.5357% / resi 79.4643% / comm 0%
+       – propertyTax — property tax ONLY (never for operating costs): condo 3.944% / resi 57.9379% / comm 38.1181%
+       CRITICAL: snow removal → equalSplit; landscaping → resiWeighted — these use DIFFERENT allocation keys, never swap them
    • 1924 Eglinton Ave W (mixed — resi 19,071 sf / comm 2,310 sf): standard 80% resi / 20% comm. Janitorial only: 90% resi / 10% comm.
    • 901 College St: 100% residential, HST not recoverable.
 
