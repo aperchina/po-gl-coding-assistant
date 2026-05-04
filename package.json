@@ -1,8 +1,5 @@
 {
   "name": "po-gl-coding-assistant",
   "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "pdf-parse": "^1.1.1"
-  }
+  "private": true
 }
