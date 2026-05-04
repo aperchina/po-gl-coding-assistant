@@ -117,8 +117,8 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
 /* ── PO PREVIEW (screen) ── */
 .po-doc{border:2px solid var(--border);border-radius:9px;overflow:hidden;font-size:13px}
 .po-dh{background:var(--navy3);color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-start}
-.po-co{font-size:16px;font-weight:800;letter-spacing:.01em}
-.po-co-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.po-co{font-size:18px;font-weight:800;letter-spacing:.01em;color:#fff}
+.po-co-sub{font-size:12px;color:rgba(255,255,255,.82);margin-top:2px}
 .po-num-wrap{text-align:right}
 .po-num-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.45)}
 .po-num-val{font-size:22px;font-weight:800;color:var(--gold2);font-family:monospace;margin-top:1px}
@@ -199,14 +199,32 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
   /* Hide every panel except the PO preview card */
   header,.no-print,
   #invoice-section,#gl-section,#hist-section{display:none!important}
-  /* .no-print covers: row-1 grid (invoice+form), GL reference, PO card-h buttons */
   body{background:#fff;margin:0}
   .wrap{padding:0}
   .card{border:none;box-shadow:none;margin:0}
   #po-card{border:none;box-shadow:none}
   #po-preview{display:block!important}
   #po-empty{display:none!important}
-  .po-doc{border:1px solid #ccc}
+  .po-doc{border:1px solid #ccc;font-size:11pt}
+  /* Force dark header background and text to print */
+  .po-dh{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .po-co{font-size:18pt!important;color:#fff!important}
+  .po-co-sub{font-size:10pt!important;color:rgba(255,255,255,.88)!important}
+  .po-num-lbl{font-size:9pt}
+  .po-num-val{font-size:18pt}
+  .po-dt{font-size:9pt}
+  /* Meta fields */
+  .po-ml{font-size:9pt}
+  .po-mv{font-size:11pt}
+  /* Line items table */
+  .po-tbl th{font-size:9pt}
+  .po-tbl td{font-size:11pt;padding:8px 14px}
+  /* Total / terms / sigs */
+  .po-tl{font-size:11pt}
+  .po-ta{font-size:18pt}
+  .po-terms{font-size:9pt}
+  .po-sig-lbl{font-size:9pt}
+  .po-sig-name{font-size:9pt}
   .po-total-bar,.po-terms,.po-sigs{page-break-inside:avoid}
 }
 </style>
@@ -373,7 +391,7 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
           <div>
             <div class="po-co">Roxborough Communities</div>
             <div class="po-co-sub">Property Management</div>
-            <div class="po-co-sub" style="margin-top:3px;font-size:10px;opacity:.6;line-height:1.5">805-370 King St West, Box 35<br>Toronto, ON&nbsp;&nbsp;M5V 1J9</div>
+            <div class="po-co-sub" style="margin-top:4px;font-size:11px;color:rgba(255,255,255,.7);line-height:1.6">805-370 King St West, Box 35<br>Toronto, ON&nbsp;&nbsp;M5V 1J9</div>
           </div>
           <div class="po-num-wrap">
             <div class="po-num-lbl">Purchase Order</div>
@@ -443,6 +461,8 @@ const HST     = 0.13;
 const PROPS = {
   '772queen': {
     label: '772 Queen St E',
+    legal: '772 Queen St E Ltd.',
+    address: '772 Queen St E, Toronto ON',
     type: 'mixed',
     resi: 8517, comm: 16148,
     tenants: ['Dollarama','BMO','LCBO'],
@@ -455,6 +475,8 @@ const PROPS = {
   },
   '1133yonge': {
     label: '1133 Yonge St',
+    legal: '1133 Yonge Street Property Inc.',
+    address: '1133 Yonge St, Toronto ON',
     type: 'commercial',
     resi:0, comm:100,
     tenants: ['Sash Restaurant','EllisDon','Sleep Country'],
@@ -464,6 +486,8 @@ const PROPS = {
   },
   'college': {
     label: 'College St 871-899',
+    legal: 'College Street Property Inc.',
+    address: '875-899 College St, Toronto ON',
     type: 'mixed3',
     resi:71793, comm:17867, condo:28006,
     tenants: ['Loblaws','Bone and Biscuit','Blood and Bandages Barbershop'],
@@ -479,6 +503,8 @@ const PROPS = {
   },
   'eglinton': {
     label: '1924 Eglinton Ave W',
+    legal: '1924 Eglinton Ltd.',
+    address: '1928 Eglinton Ave W / 7 Fairbank Ave, Toronto ON',
     type: 'mixed',
     resi:19071, comm:2310,
     tenants: ['KFC'],
@@ -489,6 +515,8 @@ const PROPS = {
   },
   '901college': {
     label: '901 College St',
+    legal: '901 College St Ltd.',
+    address: '901 College St, Toronto ON',
     type: 'residential',
     resi:4020, comm:0,
     tenants: [],
@@ -1136,7 +1164,8 @@ function buildPO(){
   const hstIn=$c('f-hst-in').value;
   const po=$c('f-po').value;
   const date=$c('f-date').value;
-  const prop=pid?PROPS[pid]?.label:'—';
+  const propLegal=pid?(PROPS[pid]?.legal||PROPS[pid]?.label):'—';
+  const propAddr=pid?PROPS[pid]?.address:null;
   const vendor=$c('f-vendor').value.trim()||'—';
   const inv=$c('f-inv').value.trim()||'—';
   const desc=$c('f-desc').value.trim()||'—';
@@ -1150,7 +1179,9 @@ function buildPO(){
 
   $c('pv-po').textContent=po;
   $c('pv-date').textContent=date?new Date(date+'T12:00:00').toLocaleDateString('en-CA',{year:'numeric',month:'long',day:'numeric'}):'—';
-  $c('pv-prop').textContent=prop;
+  $c('pv-prop').innerHTML=propAddr
+    ?`${propLegal}<br><span style="font-size:11px;font-weight:400;color:var(--muted)">${propAddr}</span>`
+    :propLegal;
   $c('pv-vendor').textContent=vendor;
   $c('pv-inv').textContent=inv;
   $c('pv-alloc').textContent=allocLabel;
