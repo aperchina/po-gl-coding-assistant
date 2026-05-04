@@ -702,7 +702,8 @@ Extract the following fields from this invoice and return ONLY valid JSON, no ma
   "workDescription": "actual description of work or items from the invoice body/line items — e.g. 'Replace main washroom sink faucet aerator — Moen p18' — null if absent",
   "unitPool": "pool for identified serviceUnit — 'condo' if unit is 600-699 series at College St 871-899, otherwise 'resi' for any other unit; null if no serviceUnit",
   "descriptionFlag": "null if work is clearly described; if description is vague ('labour only as per work order', 'repairs per WO', 'as per quote', 'see attached') without specifying actual work performed, set to: 'Description is vague — update with specific work performed before posting'",
-  "detectedProperty": "one of: 772queen | 1133yonge | college | eglinton | 901college | null"
+  "detectedProperty": "one of: 772queen | 1133yonge | college | eglinton | 901college | null",
+  "yardiNote": "One short Yardi payables comment — format: '[location/unit if any] — [plain-language work description]'. Under 120 characters. No vendor name, no invoice number, no PO number. Examples: '778 Queen St E — base building no hot water from boiler; cleaned impeller' / 'Unit 701, 7 Fairbank Ave — replace washroom sink faucet aerator' / 'College St 871-899 — scheduled elevator maintenance'"
 }
 
 ━━ CRITICAL EXTRACTION RULES ━━
@@ -799,13 +800,8 @@ Return null for any field not visible. Do not include text outside the JSON.`;
     if(d.totalAmount)     {$c('f-amt').value=d.totalAmount;amtChanged();}
     if(d.workDescription) $c('f-desc').value=d.workDescription;
 
-    // Compose structured notes: Unit — Work — Inv XXXX — PO XXXX
-    const noteParts=[];
-    if(d.serviceUnit)      noteParts.push(d.serviceUnit);
-    if(d.workDescription)  noteParts.push(d.workDescription);
-    if(d.invoiceNumber)    noteParts.push('Inv '+d.invoiceNumber);
-    if(d.poReference)      noteParts.push(d.poReference);
-    if(noteParts.length)   $c('f-notes').value=noteParts.join(' — ');
+    // Yardi payables comment: "[location] — [work]", under 120 chars
+    if(d.yardiNote) $c('f-notes').value=d.yardiNote.slice(0,120);
 
     // hstIncludedInTotal===false is the only case that needs explicit 'no';
     // everything else (true, null, undefined) defaults to 'yes' — gross total.
