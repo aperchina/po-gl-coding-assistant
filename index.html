@@ -669,35 +669,50 @@ async function scanInvoice(){
   $c('scan-btn').disabled=true;
   $c('scan-status').innerHTML='<span class="scan-pill scanning"><span class="spin">⟳</span> Scanning…</span>';
 
-  const prompt=`You are an accounts payable assistant for a Canadian property management company.
-Extract the following fields and return ONLY valid JSON, no markdown:
+  const prompt=`You are an accounts payable assistant for Roxborough Communities, a Canadian property management company.
+Extract the following fields from this invoice and return ONLY valid JSON, no markdown:
 {
-  "vendor": "string",
-  "invoiceNumber": "string or null",
+  "vendor": "vendor/supplier name",
+  "invoiceNumber": "vendor invoice number or null",
+  "poReference": "our internal PO number printed on the invoice — labelled PO#, PO Number, Purchase Order, or similar (e.g. 'PO 21030') — NOT the vendor name — null if absent",
   "invoiceDate": "YYYY-MM-DD or null",
-  "totalAmount": number (numeric only, no $ sign),
+  "totalAmount": number (no $ sign),
   "hstAmount": number or null,
   "netAmount": number or null,
-  "description": "concise description of work or purchase",
-  "unitOrSuite": "unit/suite/address if visible, else null",
-  "notes": "other relevant details (PO ref, work order, contract period), else null",
+  "serviceUnit": "unit/suite extracted from LINE ITEMS only — e.g. 'Unit 701, 7 Fairbank Ave' or '404-875 College St' — null if absent",
+  "workDescription": "actual description of work or items from the invoice body/line items — e.g. 'Replace main washroom sink faucet aerator — Moen p18' — null if absent",
   "detectedProperty": "one of: 772queen | 1133yonge | college | eglinton | 901college | null"
 }
 
-PROPERTY DETECTION — match billing address, service address, or location references:
+━━ CRITICAL EXTRACTION RULES ━━
+
+BILLING ADDRESS — ALWAYS IGNORE FOR UNIT AND PROPERTY:
+"370 King St W" / "370 King St W Suite 805" is our management office — it appears on nearly every invoice as the bill-to address. NEVER treat it as the service location and NEVER use it for property detection.
+
+SERVICE UNIT — LINE ITEMS ONLY:
+The service unit is found inside the LINE ITEMS section: description fields, reference notes, work order details, or address fields within individual line items. Look for patterns like "Unit 701", "Apt 404", "Suite 12", "701-7 Fairbank", "875 College St Unit 12". Do not use the top-level billing/remit-to block.
+
+PO REFERENCE — INTERNAL REFERENCE FIELD:
+Our PO number is a reference we add to the invoice — look for it labelled "PO#", "PO Number", "Customer PO", "Reference", or "Purchase Order". It is a number like "21030" or a string like "PO 21030". This is never the vendor name.
+
+WORK DESCRIPTION — INVOICE BODY:
+Extract the actual work performed or items supplied from the line item description. Do not copy the billing address, PO number, or any header field. Example: "Replace main washroom sink faucet aerator — Moen p18".
+
+━━ PROPERTY DETECTION — FROM LINE ITEMS AND SERVICE ADDRESS ONLY ━━
 • "772 Queen", "774 Queen", "776 Queen" → 772queen
 • "1133 Yonge" → 1133yonge
-• "871 College", "875 College", "883 College", "891 College", "895 College", "899 College" → college
+• "871", "875", "883", "891", "895", or "899" + "College" (NOT "901") → college
 • "901 College" → 901college
-• "1924 Eglinton", "Fairbank", "7 Fairbank" → eglinton
-Set detectedProperty to null only if none of the above signals are found.
+• "1924 Eglinton", "Fairbank", "7 Fairbank", "7 Fairbank Ave" in line items → eglinton
+"370 King" is NEVER a property — ignore it completely.
+Set detectedProperty to null only if no service-location signal is found.
 
-If any other field is not visible, return null. Do not include text outside the JSON.`;
+Return null for any field not visible. Do not include text outside the JSON.`;
 
   try{
     const body={
       model:MODEL,
-      max_tokens:800,
+      max_tokens:900,
       messages:[{role:'user',content:[
         {type:'image',source:{type:'base64',media_type:invoiceMime,data:invoiceB64}},
         {type:'text',text:prompt}
@@ -708,13 +723,20 @@ If any other field is not visible, return null. Do not include text outside the 
     let d;
     try{d=JSON.parse(raw)}catch{const m=raw.match(/\{[\s\S]*\}/);d=m?JSON.parse(m[0]):{}}
 
-    if(d.vendor)       $c('f-vendor').value=d.vendor;
-    if(d.invoiceNumber)$c('f-inv').value=d.invoiceNumber;
-    if(d.invoiceDate)  $c('f-date').value=d.invoiceDate;
-    if(d.totalAmount)  {$c('f-amt').value=d.totalAmount;amtChanged()}
-    if(d.description)  $c('f-desc').value=d.description;
-    if(d.unitOrSuite)  $c('f-notes').value=('Unit/Suite: '+d.unitOrSuite+(d.notes?'. '+d.notes:''));
-    else if(d.notes)   $c('f-notes').value=d.notes;
+    if(d.vendor)          $c('f-vendor').value=d.vendor;
+    if(d.invoiceNumber)   $c('f-inv').value=d.invoiceNumber;
+    if(d.invoiceDate)     $c('f-date').value=d.invoiceDate;
+    if(d.totalAmount)     {$c('f-amt').value=d.totalAmount;amtChanged()}
+    if(d.workDescription) $c('f-desc').value=d.workDescription;
+
+    // Compose structured notes: Unit — Work — Inv XXXX — PO XXXX
+    const noteParts=[];
+    if(d.serviceUnit)      noteParts.push(d.serviceUnit);
+    if(d.workDescription)  noteParts.push(d.workDescription);
+    if(d.invoiceNumber)    noteParts.push('Inv '+d.invoiceNumber);
+    if(d.poReference)      noteParts.push(d.poReference);
+    if(noteParts.length)   $c('f-notes').value=noteParts.join(' — ');
+
     if(d.hstAmount&&d.netAmount){
       $c('f-hst-in').value='no';
     } else if(d.hstAmount){
