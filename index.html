@@ -285,6 +285,12 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
             <select id="f-alloc" onchange="allocChanged()"></select>
           </div>
         </div>
+        <div class="frow c1" id="unit-alloc-banner" style="display:none">
+          <div style="background:#dcfce7;border:1px solid #86efac;border-radius:7px;padding:9px 13px;font-size:13px;color:#166534;width:100%">
+            <strong>100% Residential — Unit-Specific</strong><br>
+            <span style="font-size:12px">Repair to <span id="unit-alloc-label" style="font-weight:600"></span> — full gross amount, HST inclusive (non-recoverable). <em>Common-area work? Clear the invoice and re-scan, or use the Clear button to reset.</em></span>
+          </div>
+        </div>
         <div class="frow c2" id="manual-split-row" style="display:none">
           <div class="fg"><label>Resi % (manual)</label><input type="number" id="f-resi-pct" placeholder="e.g. 50" min="0" max="100" step="0.01" oninput="manualSplitChanged()"/></div>
           <div class="fg"><label>Comm % (manual)</label><input type="number" id="f-comm-pct" placeholder="e.g. 50" min="0" max="100" step="0.01" oninput="manualSplitCommChanged()"/></div>
@@ -628,7 +634,7 @@ function toast(msg,type=''){
 }
 
 // ── INVOICE DROP ──────────────────────────────────────────────────────────────
-let invoiceFile=null, invoiceB64=null, invoiceMime=null;
+let invoiceFile=null, invoiceB64=null, invoiceMime=null, invoiceServiceUnit=null;
 
 function dzOver(e){e.preventDefault();$c('drop-zone').classList.add('over')}
 function dzLeave(){$c('drop-zone').classList.remove('over')}
@@ -654,7 +660,7 @@ function loadFile(f){
 }
 
 function clearInvoice(){
-  invoiceFile=invoiceB64=invoiceMime=null;
+  invoiceFile=invoiceB64=invoiceMime=invoiceServiceUnit=null;
   $c('invoice-thumb').style.display='none';
   $c('invoice-thumb').src='';
   $c('drop-zone').classList.remove('has-file','over');
@@ -723,6 +729,8 @@ Return null for any field not visible. Do not include text outside the JSON.`;
     let d;
     try{d=JSON.parse(raw)}catch{const m=raw.match(/\{[\s\S]*\}/);d=m?JSON.parse(m[0]):{}}
 
+    invoiceServiceUnit = d.serviceUnit || null;
+
     if(d.vendor)          $c('f-vendor').value=d.vendor;
     if(d.invoiceNumber)   $c('f-inv').value=d.invoiceNumber;
     if(d.invoiceDate)     $c('f-date').value=d.invoiceDate;
@@ -743,13 +751,14 @@ Return null for any field not visible. Do not include text outside the JSON.`;
       $c('f-hst-in').value='yes';
     }
 
-    // Property auto-detection
+    // Property auto-detection — always call propChanged so unit-alloc banner reflects new serviceUnit
     if(d.detectedProperty && PROPS[d.detectedProperty] && !$c('f-prop').value){
       $c('f-prop').value=d.detectedProperty;
       propChanged();
       $c('scan-status').innerHTML=`<span class="scan-pill done">✓ Scanned — Property auto-detected: ${PROPS[d.detectedProperty].label} — confirm or change</span>`;
       toast(`Property auto-detected: ${PROPS[d.detectedProperty].label} — confirm or change`,'ok');
     } else {
+      if($c('f-prop').value) propChanged(); // refresh alloc mode (unit banner may have changed)
       $c('scan-status').innerHTML='<span class="scan-pill done">✓ Scanned</span>';
       toast('Invoice scanned — review and confirm fields','ok');
     }
@@ -766,13 +775,22 @@ function propChanged(){
   const pid=$c('f-prop').value;
   const allocRow=$c('alloc-row');
   const manualRow=$c('manual-split-row');
-  if(!pid){allocRow.style.display='none';manualRow.style.display='none';hideAllocOut();return}
-  const p=PROPS[pid];
-  // populate alloc dropdown
-  const sel=$c('f-alloc');
-  sel.innerHTML=p.allocs.map(a=>`<option value="${a.id}">${a.label}</option>`).join('');
-  allocRow.style.display='';
-  allocChanged();
+  const unitBanner=$c('unit-alloc-banner');
+  if(!pid){allocRow.style.display='none';manualRow.style.display='none';unitBanner.style.display='none';hideAllocOut();return}
+  if(invoiceServiceUnit){
+    // Unit-specific repair → 100% resi, no allocation schedule needed
+    allocRow.style.display='none';manualRow.style.display='none';
+    $c('unit-alloc-label').textContent=invoiceServiceUnit;
+    unitBanner.style.display='';
+    calcAlloc();
+  } else {
+    unitBanner.style.display='none';
+    const p=PROPS[pid];
+    const sel=$c('f-alloc');
+    sel.innerHTML=p.allocs.map(a=>`<option value="${a.id}">${a.label}</option>`).join('');
+    allocRow.style.display='';
+    allocChanged();
+  }
 }
 
 function allocChanged(){
@@ -808,6 +826,10 @@ function hideAllocOut(){$c('alloc-empty').style.display='';$c('alloc-out').style
 
 function getActiveSplit(){
   const pid=$c('f-prop').value;if(!pid)return null;
+  // Unit-specific repair always overrides to 100% residential
+  if(invoiceServiceUnit){
+    return {resi:100,comm:0,condo:0,label:'100% Residential (unit-specific)',note:`Repair to ${invoiceServiceUnit} — 100% residential, HST inclusive (non-recoverable). No commercial split.`};
+  }
   const p=PROPS[pid];
   const aid=$c('f-alloc').value;
   const a=p.allocs.find(x=>x.id===aid)||p.allocs[0];
@@ -841,7 +863,8 @@ function calcAlloc(){
   if(split.resi>0)  pools.push({key:'resi', label:'Residential',pct:split.resi, hstType:'resi'});
   if(split.comm>0)  pools.push({key:'comm', label:'Commercial',pct:split.comm, hstType:'comm'});
 
-  let runNetTotal=0,runHstTotal=0,runGrossTotal=0;
+  const singleResi=pools.length===1&&pools[0].hstType==='resi';
+  let runNetTotal=0,runHstTotal=0;
   pools.forEach(pool=>{
     const pct=pool.pct/100;
     const poolNet=parseFloat((netTotal*pct).toFixed(2));
@@ -849,14 +872,13 @@ function calcAlloc(){
     if(hstIn==='exempt'){
       poolHst=0;poolGross=poolNet;hstNote='Exempt';
     } else if(pool.hstType==='resi'){
-      // resi: HST is a cost (no ITC), gross = net+hst expensed
       poolHst=parseFloat((poolNet*HST).toFixed(2));
-      poolGross=poolNet+poolHst;
+      // Use exact invoice total for single resi pool to avoid rounding gap
+      poolGross=singleResi?total:poolNet+poolHst;
       hstNote='Inclusive (cost)';
     } else {
-      // comm/condo: ITC recoverable
       poolHst=parseFloat((poolNet*HST).toFixed(2));
-      poolGross=poolNet; // expense only net, hst is ITC
+      poolGross=poolNet;
       hstNote='ITC recoverable';
     }
     runNetTotal+=poolNet;runHstTotal+=poolHst;
@@ -1042,6 +1064,7 @@ function buildPO(){
     pools.push({label:'—',pct:100,type:'mixed'});
   }
 
+  const singleResiPO=pools.length===1&&pools[0].type==='resi';
   let grandTotal=0;
   const lines=pools.map(pool=>{
     const pct=pool.pct/100;
@@ -1051,13 +1074,14 @@ function buildPO(){
     else if(pool.type==='resi'){
       poolHst=parseFloat((poolNet*HST).toFixed(2));
       hstLabel=`${fmt(poolHst)} (cost)`;
-      lineTotal=poolNet+poolHst;
+      // Use exact invoice total for single resi to eliminate rounding gap
+      lineTotal=singleResiPO?total:poolNet+poolHst;
     } else {
       poolHst=parseFloat((poolNet*HST).toFixed(2));
       hstLabel=`${fmt(poolHst)} ITC`;
       lineTotal=poolNet;
     }
-    grandTotal+=poolNet+(pool.type==='resi'?poolHst:0);
+    grandTotal+=singleResiPO?total:(poolNet+(pool.type==='resi'?poolHst:0));
     return `<tr>
       <td>${desc}</td>
       <td><span class="gl-chip">${code}</span></td>
@@ -1136,10 +1160,12 @@ function clearHist(){if(!confirm('Clear all history?'))return;localStorage.remov
 
 // ── CLEAR FORM ────────────────────────────────────────────────────────────────
 function clearForm(){
+  invoiceServiceUnit=null;
   ['f-vendor','f-inv','f-desc','f-amt','f-notes'].forEach(id=>$c(id).value='');
   $c('f-prop').value='';$c('f-hst-in').value='yes';
   $c('f-po').value=genPO();$c('f-date').value=new Date().toISOString().slice(0,10);
   $c('alloc-row').style.display='none';$c('manual-split-row').style.display='none';
+  $c('unit-alloc-banner').style.display='none';
   $c('gl-empty').style.display='';$c('gl-out').style.display='none';
   $c('alloc-empty').style.display='';$c('alloc-out').style.display='none';
   $c('po-preview').style.display='none';$c('po-empty').style.display='';
