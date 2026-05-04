@@ -164,6 +164,13 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
 .cat-s{background:#fef2f2;color:#991b1b}
 .cat-r{background:#f0fdf4;color:#14532d}
 .cat-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px}
+.cat-sc{background:#fce7f3;color:#9d174d}
+.cat-tax{background:#ffedd5;color:#c2410c}
+.cat-sf{background:#ecfdf5;color:#065f46}
+.cat-l{background:#f0f9ff;color:#0369a1}
+.cat-fin{background:#f1f5f9;color:#334155}
+.cat-bd{background:#fff1f2;color:#be123c}
+.gl-flag{font-size:11px;font-weight:600;color:#92400e;background:#fef3c7;border-left:3px solid #f59e0b;padding:4px 10px;border-radius:0 4px 4px 0;margin-top:5px}
 
 /* ── HISTORY ── */
 .hist-row{display:flex;align-items:center;gap:13px;padding:11px 16px;border-bottom:1px solid #f0f2f5;font-size:13px;transition:background .1s}
@@ -476,55 +483,126 @@ const PROPS = {
 
 // ── GL CODES ─────────────────────────────────────────────────────────────────
 const GL = [
-  // RESIDENTIAL R&M
-  {code:'7000-3060',name:'Residential R&M – Plumbing',              cat:'m', hst:'mixed', uses:'Pipe repairs, drain cleaning, fixtures, leak repairs in residential units'},
-  {code:'7000-3020',name:'Residential R&M – HVAC',                  cat:'m', hst:'mixed', uses:'Furnace, boiler, fan coil, heat pump repairs in residential buildings'},
-  {code:'7000-3010',name:'Residential R&M – AC & Ventilation',      cat:'m', hst:'mixed', uses:'AC units, ERV/HRV, exhaust fans, ventilation repairs in residential units'},
-  {code:'7000-3030',name:'Residential R&M – Electrical',            cat:'m', hst:'mixed', uses:'Lighting, panels, outlets, electrical repairs in residential buildings'},
-  {code:'7000-3040',name:'Residential R&M – Elevator',              cat:'m', hst:'mixed', uses:'Elevator repairs, MOL inspection, modernization in residential buildings'},
-  {code:'7000-3090',name:'Residential R&M – Fire Systems',          cat:'m', hst:'mixed', uses:'Fire alarm, sprinkler, extinguisher repairs in residential buildings'},
-  {code:'7000-3050',name:'Residential R&M – Exterior / Roof',       cat:'m', hst:'mixed', uses:'Roof repairs, exterior cladding, gutters, flashing on residential buildings'},
-  {code:'7000-3070',name:'Residential R&M – Carpet, Mats, Floors',  cat:'m', hst:'mixed', uses:'Carpet, hardwood, tile, entrance mat repairs in residential common areas'},
-  {code:'7000-3080',name:'Residential R&M – Locks & Other Structures', cat:'m', hst:'mixed', uses:'Locksmith, door hardware, key fob, building structure repairs'},
-  {code:'7000-3085',name:'Residential R&M – Garage and Parking',    cat:'m', hst:'mixed', uses:'Garage door, line painting, asphalt, parking structure repairs'},
-  {code:'7000-3130',name:'Residential R&M – Extra Janitorial',      cat:'m', hst:'mixed', uses:'Additional cleaning beyond base contract in residential buildings'},
-  {code:'7000-3125',name:'Residential – Appliance Service',         cat:'m', hst:'mixed', uses:'In-suite appliance repairs and servicing in residential units'},
-  {code:'7000-3300',name:'Residential – Unit Turn Over',            cat:'m', hst:'mixed', uses:'Suite turnover: cleaning, painting, repairs between tenants'},
-  {code:'7000-3110',name:'Residential R&M – In-Suite Misc',         cat:'m', hst:'mixed', uses:'Miscellaneous in-suite repairs and maintenance in residential units'},
-  // COMMERCIAL R&M
-  {code:'6100-2300',name:'R&M – Plumbing',                          cat:'m', hst:'mixed', uses:'Pipe repairs, drain cleaning, fixtures, leak repairs in commercial spaces'},
-  {code:'6100-1100',name:'R&M – HVAC',                              cat:'m', hst:'mixed', uses:'RTU, boiler, fan coil, heat pump repairs in commercial spaces'},
-  {code:'6100-1000',name:'R&M – AC & Ventilation',                  cat:'m', hst:'mixed', uses:'AC units, make-up air, exhaust, ventilation repairs in commercial spaces'},
-  {code:'6100-2000',name:'R&M – Electrical',                        cat:'m', hst:'mixed', uses:'Lighting, panels, outlets, electrical repairs in commercial spaces'},
-  {code:'6100-2100',name:'R&M – Elevator',                          cat:'m', hst:'mixed', uses:'Elevator repairs, MOL inspection in commercial buildings'},
-  {code:'6100-3100',name:'R&M – Fire Systems',                      cat:'m', hst:'mixed', uses:'Fire alarm, sprinkler, extinguisher repairs in commercial spaces'},
-  {code:'6100-2200',name:'R&M – Exterior / Roof',                   cat:'m', hst:'mixed', uses:'Roof repairs, exterior cladding, gutters in commercial buildings'},
-  {code:'6100-2400',name:'R&M – Carpet, Mats, Floors',              cat:'m', hst:'mixed', uses:'Carpet, tile, entrance mat repairs in commercial common areas'},
-  {code:'6100-2500',name:'R&M – Locks & Other Structures',          cat:'m', hst:'mixed', uses:'Locksmith, door hardware, access control in commercial spaces'},
-  {code:'6100-2600',name:'R&M – Garage and Parking',                cat:'m', hst:'mixed', uses:'Garage door, line painting, asphalt in commercial properties'},
-  {code:'6100-3220',name:'R&M – Extra Janitorial',                  cat:'m', hst:'mixed', uses:'Additional cleaning beyond base contract in commercial spaces'},
-  {code:'6100-3200',name:'R&M – Misc Repairs',                      cat:'m', hst:'mixed', uses:'Miscellaneous repairs and maintenance in commercial spaces'},
-  // RESIDENTIAL SERVICE CONTRACTS
-  {code:'7000-4020',name:'Residential SC – HVAC Maintenance',       cat:'m', hst:'mixed', uses:'HVAC preventive maintenance contract for residential buildings'},
-  {code:'7000-4040',name:'Residential SC – Elevator Maintenance',   cat:'m', hst:'mixed', uses:'Elevator service contract and annual certification for residential buildings'},
-  {code:'7000-4090',name:'Residential SC – Fire Alarm Inspections', cat:'m', hst:'mixed', uses:'Fire alarm and sprinkler inspection contract for residential buildings'},
-  {code:'7000-4030',name:'Residential SC – Security Monitoring',    cat:'m', hst:'mixed', uses:'Building security monitoring service contract'},
-  {code:'7000-4035',name:'Residential SC – Concierge Services',     cat:'m', hst:'mixed', uses:'Concierge and front desk service contract for residential buildings'},
-  {code:'7000-4060',name:'Residential SC – Janitorial Services',    cat:'m', hst:'mixed', uses:'Base janitorial service contract for residential common areas'},
-  {code:'7000-4080',name:'Residential SC – Pest Control',           cat:'m', hst:'mixed', uses:'Pest control service contract for residential buildings'},
-  {code:'7000-4110',name:'Residential SC – Snow Removal',           cat:'m', hst:'mixed', uses:'Snow plowing, salting, and clearing service contract'},
-  {code:'7000-4120',name:'Residential SC – Landscaping',            cat:'m', hst:'mixed', uses:'Lawn care and grounds maintenance service contract'},
-  // COMMERCIAL SERVICE CONTRACTS
-  {code:'6200-5100',name:'SC – HVAC Maintenance',                   cat:'m', hst:'mixed', uses:'HVAC preventive maintenance contract for commercial properties'},
-  {code:'6200-4100',name:'SC – Elevator Maintenance',               cat:'m', hst:'mixed', uses:'Elevator service contract and annual certification for commercial buildings'},
-  {code:'6200-3200',name:'SC – Fire Alarm Inspections',             cat:'m', hst:'mixed', uses:'Fire alarm and sprinkler inspection contract for commercial spaces'},
-  {code:'6200-3100',name:'SC – Security Monitoring',                cat:'m', hst:'mixed', uses:'Building security monitoring service contract for commercial properties'},
-  {code:'6200-3105',name:'SC – Concierge Services',                 cat:'m', hst:'mixed', uses:'Concierge and building access service contract for commercial properties'},
-  {code:'6200-2100',name:'SC – Janitorial Services',                cat:'m', hst:'mixed', uses:'Base janitorial service contract for commercial common areas'},
-  {code:'6200-2400',name:'SC – Pest Control',                       cat:'m', hst:'mixed', uses:'Pest control service contract for commercial properties'},
-  {code:'6200-1100',name:'SC – Snow Removal',                       cat:'m', hst:'mixed', uses:'Snow plowing, salting, and clearing contract for commercial properties'},
-  {code:'6200-1200',name:'SC – Landscaping',                        cat:'m', hst:'mixed', uses:'Lawn care and grounds maintenance contract for commercial properties'},
-  {code:'6200-3400',name:'SC – Generator',                          cat:'m', hst:'mixed', uses:'Generator maintenance and service contract for commercial properties'},
+  // ── RESIDENTIAL R&M (7000-3xxx) ──────────────────────────────────────────
+  {code:'7000-3010',name:'Resi R&M – AC & Ventilation',         cat:'m',   hst:'resi',   uses:'AC units, ERV/HRV, exhaust fans, ventilation repairs — residential'},
+  {code:'7000-3020',name:'Resi R&M – HVAC',                     cat:'m',   hst:'resi',   uses:'Furnace, boiler, heat pump, fan coil repairs — residential'},
+  {code:'7000-3030',name:'Resi R&M – Electrical',               cat:'m',   hst:'resi',   uses:'Lighting, panels, outlets, electrical repairs — residential'},
+  {code:'7000-3040',name:'Resi R&M – Elevator',                 cat:'m',   hst:'resi',   uses:'Elevator fault, emergency callback, repairs — residential'},
+  {code:'7000-3050',name:'Resi R&M – Exterior / Roof',          cat:'m',   hst:'resi',   uses:'Roof repairs, exterior cladding, gutters, flashing — residential'},
+  {code:'7000-3060',name:'Resi R&M – Plumbing',                 cat:'m',   hst:'resi',   uses:'Drain, pipe, backflow, faucet, aerator repairs — residential'},
+  {code:'7000-3070',name:'Resi R&M – Carpet, Mats, Floors',     cat:'m',   hst:'resi',   uses:'Carpet, hardwood, tile, entrance mat repairs — residential'},
+  {code:'7000-3080',name:'Resi R&M – Locks & Other Structures',  cat:'m',   hst:'resi',   uses:'Locksmith, door hardware, key fob, structure repairs — residential'},
+  {code:'7000-3085',name:'Resi R&M – Garage and Parking',        cat:'m',   hst:'resi',   uses:'Garage door, line painting, asphalt, parking — residential'},
+  {code:'7000-3090',name:'Resi R&M – Fire Systems',              cat:'m',   hst:'resi',   uses:'Fire panel, sprinkler, false alarm, backflow testing — residential'},
+  {code:'7000-3100',name:'Resi R&M – Building Signage',          cat:'m',   hst:'resi',   uses:'Suite signs, directory, wayfinding — residential only'},
+  {code:'7000-3110',name:'Resi R&M – In-Suite Misc',             cat:'m',   hst:'resi',   uses:'Miscellaneous in-suite repairs and maintenance — residential'},
+  {code:'7000-3120',name:'Resi R&M – Amenity Expenses',          cat:'m',   hst:'resi',   uses:'Amenity room, gym, party room repairs — residential only'},
+  {code:'7000-3125',name:'Resi R&M – Appliance Service',         cat:'m',   hst:'resi',   uses:'In-suite appliance repairs and servicing — residential only'},
+  {code:'7000-3130',name:'Resi R&M – Extra Janitorial',          cat:'m',   hst:'resi',   uses:'Emergency, flood, or post-construction extra cleaning — residential'},
+  {code:'7000-3140',name:'Resi R&M – Extra Concierge',           cat:'m',   hst:'resi',   uses:'One-off extra concierge shift — residential'},
+  {code:'7000-3300',name:'Resi – Unit Turn Over',                cat:'m',   hst:'resi',   uses:'Between-tenancy suite cleaning, painting, repairs — residential only'},
+  {code:'7000-3400',name:'Resi – Admin Service',                 cat:'m',   hst:'resi',   uses:'BlueBox, smart access, admin service fees — residential only'},
+  // ── COMMERCIAL R&M (6100-xxxx) ───────────────────────────────────────────
+  {code:'6100-1000',name:'Comm R&M – AC & Ventilation',          cat:'m',   hst:'comm',   uses:'AC units, make-up air, exhaust, ventilation repairs — commercial'},
+  {code:'6100-1100',name:'Comm R&M – HVAC',                      cat:'m',   hst:'comm',   uses:'RTU, boiler, fan coil, heat pump repairs — commercial'},
+  {code:'6100-2000',name:'Comm R&M – Electrical',                cat:'m',   hst:'comm',   uses:'Lighting, panels, outlets, electrical repairs — commercial'},
+  {code:'6100-2100',name:'Comm R&M – Elevator',                  cat:'m',   hst:'comm',   uses:'Elevator fault, emergency callback, repairs — commercial'},
+  {code:'6100-2200',name:'Comm R&M – Exterior / Roof',           cat:'m',   hst:'comm',   uses:'Roof repairs, exterior cladding, gutters — commercial'},
+  {code:'6100-2300',name:'Comm R&M – Plumbing',                  cat:'m',   hst:'comm',   uses:'Drain, pipe, backflow, faucet, aerator repairs — commercial'},
+  {code:'6100-2400',name:'Comm R&M – Carpet, Mats, Floors',      cat:'m',   hst:'comm',   uses:'Carpet, tile, entrance mat repairs — commercial'},
+  {code:'6100-2450',name:'Comm R&M – Guest Suite Expenses',       cat:'m',   hst:'comm',   uses:'Guest suite repairs and expenses — commercial only'},
+  {code:'6100-2500',name:'Comm R&M – Locks & Other Structures',   cat:'m',   hst:'comm',   uses:'Locksmith, door hardware, access control — commercial'},
+  {code:'6100-2600',name:'Comm R&M – Garage and Parking',         cat:'m',   hst:'comm',   uses:'Garage door, line painting, asphalt — commercial'},
+  {code:'6100-3100',name:'Comm R&M – Fire Systems',               cat:'m',   hst:'comm',   uses:'Fire panel, sprinkler, false alarm, backflow testing — commercial'},
+  {code:'6100-3200',name:'Comm R&M – Misc Repairs',               cat:'m',   hst:'comm',   uses:'Miscellaneous repairs and maintenance — commercial'},
+  {code:'6100-3220',name:'Comm R&M – Extra Janitorial',           cat:'m',   hst:'comm',   uses:'Emergency, flood, or post-construction extra cleaning — commercial'},
+  {code:'6100-3230',name:'Comm R&M – Extra Concierge',            cat:'m',   hst:'comm',   uses:'One-off extra concierge shift — commercial'},
+  // ── RESIDENTIAL SERVICE CONTRACTS (7000-4xxx) ────────────────────────────
+  {code:'7000-4010',name:'Resi SC – Generator Maintenance',       cat:'sc',  hst:'resi',   uses:'Generator service contract — residential'},
+  {code:'7000-4020',name:'Resi SC – HVAC Maintenance',            cat:'sc',  hst:'resi',   uses:'HVAC preventive maintenance contract — residential'},
+  {code:'7000-4030',name:'Resi SC – Security Monitoring',         cat:'sc',  hst:'resi',   uses:'Building security monitoring service contract — residential'},
+  {code:'7000-4035',name:'Resi SC – Concierge Services',          cat:'sc',  hst:'resi',   uses:'Regular contracted concierge shifts — residential'},
+  {code:'7000-4040',name:'Resi SC – Elevator Maintenance',        cat:'sc',  hst:'resi',   uses:'Elevator service contract and annual certification — residential'},
+  {code:'7000-4050',name:'Resi SC – Garbage Removal',             cat:'sc',  hst:'resi',   uses:'Garbage removal service contract — residential'},
+  {code:'7000-4060',name:'Resi SC – Janitorial Services',         cat:'sc',  hst:'resi',   uses:'Base janitorial service contract — residential'},
+  {code:'7000-4070',name:'Resi SC – Janitorial Supplies',         cat:'sc',  hst:'resi',   uses:'Janitorial supplies under service contract — residential'},
+  {code:'7000-4080',name:'Resi SC – Pest Control',                cat:'sc',  hst:'resi',   uses:'Pest control service contract — residential'},
+  {code:'7000-4090',name:'Resi SC – Fire Alarm Inspections',      cat:'sc',  hst:'resi',   uses:'Fire alarm and sprinkler inspection contract — residential'},
+  {code:'7000-4100',name:'Resi SC – Window Cleaning / Roof Anchors', cat:'sc', hst:'resi', uses:'Window cleaning contract or roof anchor annual inspection — residential'},
+  {code:'7000-4110',name:'Resi SC – Snow Removal',                cat:'sc',  hst:'resi',   uses:'Snow plowing, salting, clearing service contract — residential'},
+  {code:'7000-4120',name:'Resi SC – Landscaping',                 cat:'sc',  hst:'resi',   uses:'Lawn care and grounds maintenance contract — residential'},
+  // ── COMMERCIAL SERVICE CONTRACTS (6200-xxxx) ─────────────────────────────
+  {code:'6200-1100',name:'Comm SC – Snow Removal',                cat:'sc',  hst:'comm',   uses:'Snow plowing, salting, clearing contract — commercial'},
+  {code:'6200-1200',name:'Comm SC – Landscaping',                 cat:'sc',  hst:'comm',   uses:'Lawn care and grounds maintenance contract — commercial'},
+  {code:'6200-2100',name:'Comm SC – Janitorial Services',         cat:'sc',  hst:'comm',   uses:'Base janitorial service contract — commercial'},
+  {code:'6200-2200',name:'Comm SC – Janitorial Supplies',         cat:'sc',  hst:'comm',   uses:'Janitorial supplies under service contract — commercial'},
+  {code:'6200-2300',name:'Comm SC – Window Cleaning',             cat:'sc',  hst:'comm',   uses:'Window cleaning service contract — commercial'},
+  {code:'6200-2400',name:'Comm SC – Pest Control',                cat:'sc',  hst:'comm',   uses:'Pest control service contract — commercial'},
+  {code:'6200-2500',name:'Comm SC – Garbage Removal',             cat:'sc',  hst:'comm',   uses:'Garbage removal service contract — commercial'},
+  {code:'6200-3100',name:'Comm SC – Security Monitoring',         cat:'sc',  hst:'comm',   uses:'Building security monitoring contract — commercial'},
+  {code:'6200-3105',name:'Comm SC – Concierge Services',          cat:'sc',  hst:'comm',   uses:'Regular contracted concierge shifts — commercial'},
+  {code:'6200-3200',name:'Comm SC – Fire Alarm Inspections',      cat:'sc',  hst:'comm',   uses:'Fire alarm and sprinkler inspection contract — commercial'},
+  {code:'6200-3300',name:'Comm SC – General Maintenance',         cat:'sc',  hst:'comm',   uses:'Water treatment, preventative maintenance contracts — commercial'},
+  {code:'6200-3400',name:'Comm SC – Generator Maintenance',       cat:'sc',  hst:'comm',   uses:'Generator service contract — commercial'},
+  {code:'6200-3500',name:'Comm SC – Water & Sewer Treatment',     cat:'sc',  hst:'comm',   uses:'Grease trap, catch basin, water treatment contracts — commercial'},
+  {code:'6200-3600',name:'Comm SC – Roof Anchors',                cat:'sc',  hst:'comm',   uses:'Roof anchor annual inspection and certification — commercial'},
+  {code:'6200-3700',name:'Comm SC – Garage Services',             cat:'sc',  hst:'comm',   uses:'Garage maintenance service contract — commercial'},
+  {code:'6200-4100',name:'Comm SC – Elevator Maintenance',        cat:'sc',  hst:'comm',   uses:'Elevator service contract and annual certification — commercial'},
+  {code:'6200-5100',name:'Comm SC – HVAC Maintenance',            cat:'sc',  hst:'comm',   uses:'HVAC preventive maintenance contract — commercial'},
+  {code:'6200-9000',name:'Comm SC – Other Contracts',             cat:'sc',  hst:'comm',   uses:'Other service contracts not elsewhere classified — commercial'},
+  // ── UTILITIES ─────────────────────────────────────────────────────────────
+  {code:'7000-2010',name:'Resi – Gas',                            cat:'u',   hst:'resi',   uses:'Natural gas supply — residential'},
+  {code:'7000-2020',name:'Resi – Hydro',                          cat:'u',   hst:'resi',   uses:'Electricity supply — residential'},
+  {code:'7000-2030',name:'Resi – Water & Sewage',                 cat:'u',   hst:'resi',   uses:'Municipal water and sewer charges — residential'},
+  {code:'7000-2040',name:'Resi – Internet / Telephone',           cat:'u',   hst:'resi',   uses:'Internet and telephone services — residential'},
+  {code:'7000-2045',name:'Resi – Waste Removal',                  cat:'u',   hst:'resi',   uses:'Garbage and waste removal charges — residential'},
+  {code:'6300-1000',name:'Comm – Gas',                            cat:'u',   hst:'comm',   uses:'Natural gas supply — commercial'},
+  {code:'6300-2000',name:'Comm – Hydro',                          cat:'u',   hst:'comm',   uses:'Electricity supply — commercial'},
+  {code:'6300-3000',name:'Comm – Internet / Telephone',           cat:'u',   hst:'comm',   uses:'Internet and telephone services — commercial'},
+  {code:'6300-3100',name:'Comm – Cable',                          cat:'u',   hst:'comm',   uses:'Cable TV services — commercial'},
+  {code:'6300-4000',name:'Comm – Waste Removal',                  cat:'u',   hst:'comm',   uses:'Garbage and waste removal — commercial'},
+  {code:'6300-5000',name:'Comm – Water & Sewage',                 cat:'u',   hst:'comm',   uses:'Municipal water and sewer charges — commercial'},
+  // ── TAXES & INSURANCE ─────────────────────────────────────────────────────
+  {code:'7000-1000',name:'Resi – Property Tax',                   cat:'tax', hst:'exempt', uses:'Municipal property tax — residential portion'},
+  {code:'6500-1000',name:'Comm – Property Tax',                   cat:'tax', hst:'exempt', uses:'Municipal property tax — commercial portion'},
+  {code:'6600-1000',name:'Insurance',                                  cat:'i',   hst:'exempt', uses:'Property, liability, and all building insurance premiums'},
+  // ── SHARED FACILITIES & COMMON ELEMENTS ──────────────────────────────────
+  {code:'6700-6000',name:'Shared Facilities Expense',                  cat:'sf',  hst:'mixed',  uses:'Shared facilities costs across residential, commercial, and condo pools'},
+  {code:'7300-0000',name:'Common Element Fees',                        cat:'sf',  hst:'mixed',  uses:'College St parking — condo common element fees'},
+  // ── LEASING ───────────────────────────────────────────────────────────────
+  {code:'7200-1000',name:'Leasing Commissions',                        cat:'l',   hst:'mixed',  uses:'Broker and leasing agent commissions'},
+  {code:'7200-2000',name:'Model Suite & Leased Office',                cat:'l',   hst:'mixed',  uses:'Model suite furnishings, leasing office expenses'},
+  {code:'7200-3000',name:'Tenant Application & Misc',                  cat:'l',   hst:'mixed',  uses:'Application fees, background checks, leasing miscellaneous'},
+  // ── ADMIN & G&A (below NOI) ───────────────────────────────────────────────
+  {code:'8500-1010',name:'Marketing & Leasing Platforms',              cat:'a',   hst:'mixed',  uses:'Online listing platforms, marketing — HST generally not recoverable below NOI'},
+  {code:'8500-1015',name:'Resident Events & Community',                cat:'a',   hst:'mixed',  uses:'Resident events, community engagement expenses'},
+  {code:'8500-1035',name:'Software & Subscriptions',                   cat:'a',   hst:'mixed',  uses:'Property management software, apps, SaaS subscriptions'},
+  {code:'8500-1050',name:'Transportation & Mileage',                   cat:'a',   hst:'mixed',  uses:'Vehicle mileage, transit, transportation for property visits'},
+  {code:'8500-1060',name:'Meals, Entertainment & Staff',               cat:'a',   hst:'mixed',  uses:'Staff meals, team entertainment, building events'},
+  {code:'8500-1070',name:'Property & Office Supplies',                 cat:'a',   hst:'mixed',  uses:'Office supplies, paper, printer ink, miscellaneous property supplies'},
+  {code:'8500-1080',name:'Admin Stationery & Displays',                cat:'a',   hst:'mixed',  uses:'Stationery, branded materials, lobby displays'},
+  {code:'8500-1140',name:'Vehicle Insurance',                          cat:'a',   hst:'exempt', uses:'Vehicle insurance for company vehicles'},
+  // ── PROFESSIONAL FEES ─────────────────────────────────────────────────────
+  {code:'8400-1010',name:'Licences, Dues & Permits',                   cat:'p',   hst:'mixed',  uses:'Business licences, professional dues, building permits'},
+  {code:'8400-1060',name:'Audit, Accounting & Advisory',               cat:'p',   hst:'mixed',  uses:'Year-end audit, accounting services, financial advisory'},
+  {code:'8400-1080',name:'Tax Preparation',                            cat:'p',   hst:'mixed',  uses:'Income tax preparation and filing fees'},
+  {code:'8400-1090',name:'Legal',                                      cat:'p',   hst:'mixed',  uses:'Tenant disputes, lease review, collections, general counsel'},
+  {code:'8400-1095',name:'Regulatory & Compliance Fees',               cat:'p',   hst:'mixed',  uses:'Regulatory filings, compliance costs, TSSA, ESA fees'},
+  {code:'8400-1200',name:'Professional Fees Other',                    cat:'p',   hst:'mixed',  uses:'Other professional services not elsewhere classified'},
+  // ── FINANCE CHARGES ───────────────────────────────────────────────────────
+  {code:'8300-1010',name:'Interest Expense',                           cat:'fin', hst:'exempt', uses:'Loan and mortgage interest charges'},
+  {code:'8300-1030',name:'Bank Charges',                               cat:'fin', hst:'mixed',  uses:'Monthly bank fees, NSF charges, wire transfer fees'},
+  {code:'8300-1080',name:'Vendor Late Payment Fees',                   cat:'fin', hst:'mixed',  uses:'Late payment penalties and interest charged by vendors'},
+  // ── MANAGEMENT FEES ───────────────────────────────────────────────────────
+  {code:'8600-1010',name:'Property Management Fees',                   cat:'fin', hst:'mixed',  uses:'Monthly property management fee per management agreement'},
+  {code:'8600-1015',name:'Admin Management Fee',                       cat:'fin', hst:'mixed',  uses:'Administrative management fee'},
+  {code:'8600-1040',name:'Fund Management Fee',                        cat:'fin', hst:'mixed',  uses:'Fund-level management fee'},
+  {code:'8600-1050',name:'Asset Management Fee',                       cat:'fin', hst:'mixed',  uses:'Asset management fee charged by fund manager'},
+  // ── BALANCE SHEET ─────────────────────────────────────────────────────────
+  {code:'1850-1000',name:'After Service Post-Construction',            cat:'c',   hst:'mixed',  uses:'Post-construction holdbacks and after-service items', flag:'BALANCE SHEET CODE — Manager approval required'},
+  // ── BAD DEBT ──────────────────────────────────────────────────────────────
+  {code:'7050-1000',name:'Bad Debt Expense',                           cat:'bd',  hst:'none',   uses:'Write-off of uncollectible tenant receivables', flag:'Manager approval required'},
+  {code:'7050-2000',name:'Bad Debt Recovery',                          cat:'bd',  hst:'none',   uses:'Recovery of previously written-off bad debt'},
 ];
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -592,7 +670,7 @@ async function scanInvoice(){
   $c('scan-status').innerHTML='<span class="scan-pill scanning"><span class="spin">⟳</span> Scanning…</span>';
 
   const prompt=`You are an accounts payable assistant for a Canadian property management company.
-Extract the following fields from this invoice image and return ONLY valid JSON, no markdown:
+Extract the following fields and return ONLY valid JSON, no markdown:
 {
   "vendor": "string",
   "invoiceNumber": "string or null",
@@ -600,16 +678,26 @@ Extract the following fields from this invoice image and return ONLY valid JSON,
   "totalAmount": number (numeric only, no $ sign),
   "hstAmount": number or null,
   "netAmount": number or null,
-  "description": "string — concise description of what was purchased or the work performed",
-  "unitOrSuite": "string or null — unit number, suite, or address if visible",
-  "notes": "string or null — any other relevant details like PO ref, work order, etc."
+  "description": "concise description of work or purchase",
+  "unitOrSuite": "unit/suite/address if visible, else null",
+  "notes": "other relevant details (PO ref, work order, contract period), else null",
+  "detectedProperty": "one of: 772queen | 1133yonge | college | eglinton | 901college | null"
 }
-If a field is not visible, return null. Do not include any text outside the JSON object.`;
+
+PROPERTY DETECTION — match billing address, service address, or location references:
+• "772 Queen", "774 Queen", "776 Queen" → 772queen
+• "1133 Yonge" → 1133yonge
+• "871 College", "875 College", "883 College", "891 College", "895 College", "899 College" → college
+• "901 College" → 901college
+• "1924 Eglinton", "Fairbank", "7 Fairbank" → eglinton
+Set detectedProperty to null only if none of the above signals are found.
+
+If any other field is not visible, return null. Do not include text outside the JSON.`;
 
   try{
     const body={
       model:MODEL,
-      max_tokens:600,
+      max_tokens:800,
       messages:[{role:'user',content:[
         {type:'image',source:{type:'base64',media_type:invoiceMime,data:invoiceB64}},
         {type:'text',text:prompt}
@@ -628,13 +716,21 @@ If a field is not visible, return null. Do not include any text outside the JSON
     if(d.unitOrSuite)  $c('f-notes').value=('Unit/Suite: '+d.unitOrSuite+(d.notes?'. '+d.notes:''));
     else if(d.notes)   $c('f-notes').value=d.notes;
     if(d.hstAmount&&d.netAmount){
-      $c('f-hst-in').value='no'; // net + HST separate
+      $c('f-hst-in').value='no';
     } else if(d.hstAmount){
       $c('f-hst-in').value='yes';
     }
 
-    $c('scan-status').innerHTML='<span class="scan-pill done">✓ Scanned</span>';
-    toast('Invoice scanned — review and confirm fields','ok');
+    // Property auto-detection
+    if(d.detectedProperty && PROPS[d.detectedProperty] && !$c('f-prop').value){
+      $c('f-prop').value=d.detectedProperty;
+      propChanged();
+      $c('scan-status').innerHTML=`<span class="scan-pill done">✓ Scanned — Property auto-detected: ${PROPS[d.detectedProperty].label} — confirm or change</span>`;
+      toast(`Property auto-detected: ${PROPS[d.detectedProperty].label} — confirm or change`,'ok');
+    } else {
+      $c('scan-status').innerHTML='<span class="scan-pill done">✓ Scanned</span>';
+      toast('Invoice scanned — review and confirm fields','ok');
+    }
   }catch(e){
     $c('scan-status').innerHTML=`<span class="scan-pill err">✗ ${e.message}</span>`;
     toast(e.message,'err');
@@ -788,21 +884,51 @@ async function suggestGL(){
   const propLabel=pid?PROPS[pid]?.label:'Not specified';
   const propType=pid?PROPS[pid]?.type:'unknown';
 
-  const prompt=`You are a Canadian property management accountant. Suggest the best GL code(s) from the list below.
-Property: ${propLabel} (type: ${propType})
-Vendor: ${vendor||'not specified'}
-Description: ${desc}
-Amount: ${$c('f-amt').value||'not specified'}
+  const prompt=`You are a Canadian property management accountant for Roxborough Communities. Suggest the correct Yardi GL code(s) for the invoice below.
 
-GL CODES:
+PROPERTY: ${propLabel} (type: ${propType})
+VENDOR: ${vendor||'not specified'}
+DESCRIPTION: ${desc}
+AMOUNT: ${$c('f-amt').value||'not specified'}
+
+━━ KEY RULES ━━
+
+1. R&M vs SERVICE CONTRACT — this is the most important distinction:
+   • R&M (6100-xxxx comm / 7000-3xxx resi): called in because something broke — one-off work order, fault/emergency callback, unplanned repair.
+   • Service Contract (6200-xxxx comm / 7000-4xxx resi): planned recurring contract — invoice says "monthly maintenance", references a contract period, or is an annual inspection under a standing agreement.
+   • If the work looks like a full replacement or new install (not repair), flag it: "May be capital — confirm with Controller before posting as operating expense."
+
+2. HST TREATMENT:
+   • Residential property: post FULL GROSS amount (HST is a cost, no ITC).
+   • Commercial property (1133 Yonge): post NET amount before HST; HST is fully recoverable as ITC.
+   • Mixed property: residential portion = gross cost; commercial portion = net + ITC.
+   • Use the property type above to guide your HST note in the reason field.
+
+3. PROPERTY ALLOCATIONS:
+   • 772 Queen St E (mixed — resi 8,517 sf / comm 16,148 sf): systems are separate. For fire/backflow ONLY → auto sqft split 34.54% resi / 65.46% comm. All other work → specify which component (resi or comm) was served.
+   • 1133 Yonge St: 100% commercial, all HST fully recoverable as ITC.
+   • College St 871–899 (mixed3 — resi 71,793 / comm 17,867 / condo 28,006 sf):
+       – equalSplit (electrical/plumbing/exterior/pest/fire/snow/water/insurance): condo 24.37% / resi 60.10% / comm 15.53%
+       – resiWeighted (elevator/landscaping/janitorial/concierge/window/waste/bank): condo 27.98% / resi 68.99% / comm 3.03%
+       – hvac (HVAC and gas): condo 30.41% / resi 59.46% / comm 10.13%
+       – parking (garage): condo 64.29% / resi 31.72% / comm 3.99%
+   • 1924 Eglinton Ave W (mixed — resi 19,071 sf / comm 2,310 sf): standard 80% resi / 20% comm. Janitorial only: 90% resi / 10% comm.
+   • 901 College St: 100% residential, HST not recoverable.
+
+4. SPECIAL FLAGS — include in the flag field:
+   • Code 1850-1000: "BALANCE SHEET CODE — Manager approval required"
+   • Code 7050-1000: "Manager approval required"
+   • Any capital/replacement situation: "May be capital — confirm with Controller before posting as operating expense"
+
+━━ YARDI GL CODE LIST (use ONLY codes from this list) ━━
 ${glList}
 
 Reply ONLY in valid JSON, no markdown:
-{"suggestions":[{"code":"XXXX","name":"...","reason":"1-2 sentences"}],"confidence":"high|medium|low","reasoning":"2-3 sentences on coding decision and HST notes for this property type","primaryCode":"XXXX"}
-Return 1-3 suggestions, best first.`;
+{"suggestions":[{"code":"XXXX-XXXX","name":"...","reason":"1-2 sentences including HST treatment for this property type","flag":null}],"confidence":"high|medium|low","reasoning":"2-3 sentences: R&M vs SC rationale, HST treatment, allocation schedule if mixed","primaryCode":"XXXX-XXXX"}
+Return 1-3 suggestions best-first. Set flag to a warning string when needed, null otherwise.`;
 
   try{
-    const r=await callClaude({model:MODEL,max_tokens:700,messages:[{role:'user',content:prompt}]});
+    const r=await callClaude({model:MODEL,max_tokens:900,messages:[{role:'user',content:prompt}]});
     const raw=r.content?.[0]?.text||'{}';
     let d;try{d=JSON.parse(raw)}catch{const m=raw.match(/\{[\s\S]*\}/);d=m?JSON.parse(m[0]):{}}
     if(!d.suggestions?.length)throw new Error('No suggestions returned');
@@ -813,7 +939,11 @@ Return 1-3 suggestions, best first.`;
     $c('gl-lines').innerHTML=d.suggestions.map((s,i)=>`
       <div class="gl-line ${i===0?'sel':''}" onclick="pickGL('${s.code}','${s.name.replace(/'/g,"\\'")}',this)">
         <span class="gl-chip">${s.code}</span>
-        <div class="gl-info"><div class="gl-name">${s.name}</div><div class="gl-why">${s.reason}</div></div>
+        <div class="gl-info">
+          <div class="gl-name">${s.name}</div>
+          <div class="gl-why">${s.reason}</div>
+          ${s.flag?`<div class="gl-flag">⚠️ ${s.flag}</div>`:''}
+        </div>
         <div class="radio-dot"></div>
       </div>`).join('');
     $c('gl-note').textContent=d.reasoning||'';
@@ -943,7 +1073,7 @@ function savePO(){
 }
 
 // ── GL REFERENCE ──────────────────────────────────────────────────────────────
-const CATS={m:'Maintenance',u:'Utilities',a:'Admin',i:'Insurance',p:'Professional',c:'Capital',s:'Security',r:'Recreation'};
+const CATS={m:'R&M',sc:'Service Contract',u:'Utilities',tax:'Taxes',i:'Insurance',sf:'Shared / Common',l:'Leasing',a:'Admin & G&A',p:'Professional',fin:'Finance / Mgmt',c:'Balance Sheet',bd:'Bad Debt',s:'Security',r:'Recreation'};
 const HST_LABELS={mixed:'Resi: cost · Comm: ITC',resi:'HST is a cost (no ITC)',comm:'ITC fully recoverable',exempt:'HST exempt',none:'Not applicable'};
 
 function renderRef(codes){
