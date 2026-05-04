@@ -719,7 +719,7 @@ WORK DESCRIPTION — INVOICE BODY:
 Extract the actual work performed or items supplied from the line item description. Do not copy the billing address, PO number, or any header field. Example: "Replace main washroom sink faucet aerator — Moen p18".
 
 ━━ PROPERTY DETECTION — FROM LINE ITEMS AND SERVICE ADDRESS ONLY ━━
-• "772 Queen St E Ltd", "772 Queen", "774 Queen", "776 Queen", "772/774/776 Queen Street E" → 772queen
+• "772 Queen St E Ltd", "772 Queen", "774 Queen", "776 Queen", "778 Queen", "778 Queen St E", "772/774/776/778 Queen Street E" → 772queen
 • "1133 Yonge Street Property Inc", "1133 Yonge Street", "1133 Yonge" → 1133yonge
 • "College Street Property Inc", "875/883/891/895/897/899 College Street", "897 College Street", "College West", OR "871"/"875"/"883"/"891"/"895"/"897"/"899" + "College" (NOT "901") → college
 • "901 College Ltd", "901 College St", "901 College" → 901college
@@ -981,12 +981,14 @@ async function suggestGL(){
   const propLabel=pid?PROPS[pid]?.label:'Not specified';
   const propType=pid?PROPS[pid]?.type:'unknown';
 
+  const unitCtx=invoiceServiceUnit?`${invoiceServiceUnit} (${invoiceUnitPool==='condo'?'condo unit':'residential unit'} — 100% unit pool, never building-wide)`:'not identified — apply building-wide allocation';
   const prompt=`You are a Canadian property management accountant for Roxborough Communities. Suggest the correct Yardi GL code(s) for the invoice below.
 
 PROPERTY: ${propLabel} (type: ${propType})
 VENDOR: ${vendor||'not specified'}
 DESCRIPTION: ${desc}
 AMOUNT: ${$c('f-amt').value||'not specified'}
+SERVICE UNIT: ${unitCtx}
 
 ━━ KEY RULES ━━
 
@@ -1002,7 +1004,10 @@ AMOUNT: ${$c('f-amt').value||'not specified'}
    • Use the property type above to guide your HST note in the reason field.
 
 3. PROPERTY ALLOCATIONS:
-   • 772 Queen St E (mixed — resi 8,517 sf / comm 16,148 sf): systems are separate. For fire/backflow ONLY → auto sqft split 34.54% resi / 65.46% comm. All other work → specify which component (resi or comm) was served.
+   • 772 Queen St E (mixed — resi 8,517 sf / comm 16,148 sf):
+       – Unit/suite repair: ALWAYS 100% residential → use 7000-series resi code, HST inclusive non-recoverable. Exception: if the unit is explicitly a commercial tenant space (Dollarama, BMO, LCBO) → use 6100-series comm code.
+       – Fire/backflow systems (building-wide only): split 34.54% resi / 65.46% comm.
+       – All other building-wide work: specify which component (resi or comm) was served.
    • 1133 Yonge St: 100% commercial, all HST fully recoverable as ITC.
    • College St 871–899 (mixed3 — resi 71,793 / comm 17,867 / condo 28,006 sf):
        – equalSplit — snow removal, electrical, plumbing, exterior/roof, pest, fire, water/sewer, insurance: condo 24.37% / resi 60.10% / comm 15.53%
@@ -1027,11 +1032,14 @@ AMOUNT: ${$c('f-amt').value||'not specified'}
    • "no power", "breaker tripped", "lights out" = electrical fault → 7000-3030 resi or 6100-2000 comm
    • "elevator stuck", "elevator callback" = elevator fault → 7000-3040 resi or 6100-2100 comm
 
-6. UNIT-SPECIFIC OVERRIDE:
-   If the work is for a specific suite/unit, the cost is 100% that unit's pool — never apply a building-wide split:
-   • Residential unit → 100% resi code (7000-3xxx)
-   • Condo unit at College St (600-699 series) → condo pool, use residential R&M codes
-   • Commercial unit → 100% comm code (6100-xxxx)
+6. UNIT-SPECIFIC OVERRIDE — SERVICE UNIT field above drives this:
+   When SERVICE UNIT is identified, the cost is 100% that unit's pool — never apply a building-wide split:
+   • Residential unit → 100% resi → 7000-series code, HST inclusive non-recoverable
+   • 772 Queen unit: default to resi (7000-series) unless explicitly Dollarama / BMO / LCBO space
+   • Condo unit at College St (600-699 series) → condo pool, 7000-series resi R&M codes
+   • Commercial unit → 100% comm → 6100-series code, HST ITC recoverable
+   CONSISTENCY RULE: GL code series and cost allocation pool MUST always agree:
+   7000-series ↔ residential pool · 6100-series ↔ commercial pool · mismatch = error
 
 ━━ YARDI GL CODE LIST (use ONLY codes from this list) ━━
 ${glList}
