@@ -726,16 +726,30 @@ Return null for any field not visible. Do not include text outside the JSON.`;
   try{
     const body={
       model:MODEL,
-      max_tokens:900,
+      max_tokens:1500,
       messages:[{role:'user',content:[
         {type:'image',source:{type:'base64',media_type:invoiceMime,data:invoiceB64}},
         {type:'text',text:prompt}
       ]}]
     };
     const r=await callClaude(body);
-    const raw=r.content?.[0]?.text||'{}';
+    const raw=(r.content?.[0]?.text||'').trim();
+    if(!raw) throw new Error('Empty response from Claude — please try again');
+
+    // Parse JSON — handle markdown code fences and extra surrounding text
     let d;
-    try{d=JSON.parse(raw)}catch{const m=raw.match(/\{[\s\S]*\}/);d=m?JSON.parse(m[0]):{}}
+    try{
+      d=JSON.parse(raw);
+    }catch{
+      const m=raw.match(/\{[\s\S]*\}/);
+      if(!m) throw new Error('Claude did not return invoice data — check the file is readable and try again');
+      try{d=JSON.parse(m[0]);}
+      catch{throw new Error('Could not parse invoice data — try again');}
+    }
+
+    // Detect completely empty response (model couldn't read the file)
+    const hasData=d.vendor||d.invoiceNumber||d.totalAmount||d.workDescription||d.detectedProperty;
+    if(!hasData) throw new Error('Claude could not extract data from this file — ensure the invoice is legible and try again');
 
     invoiceServiceUnit = d.serviceUnit || null;
     invoiceUnitPool = d.unitPool || null;
@@ -750,7 +764,7 @@ Return null for any field not visible. Do not include text outside the JSON.`;
     if(d.vendor)          $c('f-vendor').value=d.vendor;
     if(d.invoiceNumber)   $c('f-inv').value=d.invoiceNumber;
     if(d.invoiceDate)     $c('f-date').value=d.invoiceDate;
-    if(d.totalAmount)     {$c('f-amt').value=d.totalAmount;amtChanged()}
+    if(d.totalAmount)     {$c('f-amt').value=d.totalAmount;amtChanged();}
     if(d.workDescription) $c('f-desc').value=d.workDescription;
 
     // Compose structured notes: Unit — Work — Inv XXXX — PO XXXX
@@ -768,15 +782,21 @@ Return null for any field not visible. Do not include text outside the JSON.`;
     }
 
     // Property auto-detection — always call propChanged so unit-alloc banner reflects new serviceUnit
-    if(d.detectedProperty && PROPS[d.detectedProperty] && !$c('f-prop').value){
-      $c('f-prop').value=d.detectedProperty;
+    if(d.detectedProperty && PROPS[d.detectedProperty]){
+      if(!$c('f-prop').value) $c('f-prop').value=d.detectedProperty;
       propChanged();
-      $c('scan-status').innerHTML=`<span class="scan-pill done">✓ Scanned — Property auto-detected: ${PROPS[d.detectedProperty].label} — confirm or change</span>`;
-      toast(`Property auto-detected: ${PROPS[d.detectedProperty].label} — confirm or change`,'ok');
+      const propLabel=PROPS[d.detectedProperty].label;
+      $c('scan-status').innerHTML=`<span class="scan-pill done">✓ Scanned — ${propLabel} — confirm or change</span>`;
+      toast(`Property auto-detected: ${propLabel} — confirm or change`,'ok');
     } else {
-      if($c('f-prop').value) propChanged(); // refresh alloc mode (unit banner may have changed)
-      $c('scan-status').innerHTML='<span class="scan-pill done">✓ Scanned</span>';
+      if($c('f-prop').value) propChanged();
+      $c('scan-status').innerHTML='<span class="scan-pill done">✓ Scanned — review fields</span>';
       toast('Invoice scanned — review and confirm fields','ok');
+    }
+
+    // Auto-suggest GL code if description was extracted
+    if($c('f-desc').value.trim()){
+      await suggestGL();
     }
   }catch(e){
     $c('scan-status').innerHTML=`<span class="scan-pill err">✗ ${e.message}</span>`;
