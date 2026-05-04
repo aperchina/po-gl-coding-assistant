@@ -694,9 +694,10 @@ Extract the following fields from this invoice and return ONLY valid JSON, no ma
   "invoiceNumber": "vendor invoice number or null",
   "poReference": "our internal PO number printed on the invoice — labelled PO#, PO Number, Purchase Order, or similar (e.g. 'PO 21030') — NOT the vendor name — null if absent",
   "invoiceDate": "YYYY-MM-DD or null",
-  "totalAmount": number (no $ sign),
+  "totalAmount": number (the final Total Due on the invoice — no $ sign),
   "hstAmount": number or null,
-  "netAmount": number or null,
+  "netAmount": number or null (the pre-tax subtotal if shown separately),
+  "hstIncludedInTotal": true if the totalAmount is the gross (HST already inside it), false if the totalAmount is pre-tax and HST is extra,
   "serviceUnit": "unit/suite extracted from LINE ITEMS only — e.g. 'Unit 701, 7 Fairbank Ave' or '404-875 College St' — null if absent",
   "workDescription": "actual description of work or items from the invoice body/line items — e.g. 'Replace main washroom sink faucet aerator — Moen p18' — null if absent",
   "unitPool": "pool for identified serviceUnit — 'condo' if unit is 600-699 series at College St 871-899, otherwise 'resi' for any other unit; null if no serviceUnit",
@@ -705,6 +706,12 @@ Extract the following fields from this invoice and return ONLY valid JSON, no ma
 }
 
 ━━ CRITICAL EXTRACTION RULES ━━
+
+HST INCLUSION — how to set hstIncludedInTotal:
+• TRUE (most common): invoice shows "Subtotal $X + HST $Y = Total $Z" — the Total is the gross amount, HST is already inside it. Also true when the total line says "Total (tax included)".
+• FALSE: invoice explicitly shows "Total before tax" or "HST will be invoiced separately" or the total line has no HST component at all and a note says tax is extra.
+• When uncertain, default to TRUE — Canadian vendors almost always show gross totals.
+IMPORTANT: if you can see both a net subtotal and an HST amount that add up to the total, set hstIncludedInTotal=true and totalAmount=the final total (not the subtotal).
 
 BILLING ADDRESS — ALWAYS IGNORE FOR UNIT AND PROPERTY:
 "370 King St W" / "370 King St W Suite 805" is our management office — it appears on nearly every invoice as the bill-to address. NEVER treat it as the service location and NEVER use it for property detection.
@@ -800,9 +807,11 @@ Return null for any field not visible. Do not include text outside the JSON.`;
     if(d.poReference)      noteParts.push(d.poReference);
     if(noteParts.length)   $c('f-notes').value=noteParts.join(' — ');
 
-    if(d.hstAmount&&d.netAmount){
+    // hstIncludedInTotal===false is the only case that needs explicit 'no';
+    // everything else (true, null, undefined) defaults to 'yes' — gross total.
+    if(d.hstIncludedInTotal === false){
       $c('f-hst-in').value='no';
-    } else if(d.hstAmount){
+    } else {
       $c('f-hst-in').value='yes';
     }
 
