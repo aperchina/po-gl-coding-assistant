@@ -96,6 +96,13 @@ The GL code column in `calcAlloc()` is populated by `suggestGL()` calling `calcA
 **Garage door / parking allocation at College St:**
 Any work involving garage doors, overhead doors, door operators, garage motors, or parking level doors must use the `parking` allocation schedule (condo 64.29% / resi 31.72% / comm 3.99%) — regardless of whether the vendor labels it "commercial service call". The physical asset determines the schedule, not the vendor billing type. Keywords that trigger auto-selection on scan: `garage door|overhead door|parking door|garage motor|door operator|tnr door|hormann door|parking level`. GL codes: resi/condo → `7000-3085`, comm → `6100-2600`.
 
+**Waste / debris removal GL mapping:**
+Keywords "debris removal", "debris disposal", "waste removal", "garbage removal", "junk removal", "disposal of debris", "haul away", "clean out" map to:
+- One-off: `7000-2045` resi / `6300-4000` comm
+- Recurring contract: `7000-4050` resi SC / `6200-2500` comm SC
+
+Do NOT use `7000-3110` (In-Suite Misc) or `7000-3130` (Extra Janitorial) for disposal/hauling — those are only for actual cleaning services (mopping, sweeping). This distinction is enforced via an explicit CRITICAL note in the GL suggestion prompt's WORK TYPE HINTS section.
+
 **Warning flags in GL panel:**
 Client-side regex on description triggers amber banners at the top of the GL suggestion panel (above codes, non-blocking):
 - After Service / Post-Construction: `deficien|warranty|commissioning|new construction|builder|tarion|touch.?up after|post.?construct|handover`
