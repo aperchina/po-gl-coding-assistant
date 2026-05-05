@@ -844,6 +844,11 @@ Return null for any field not visible. Do not include text outside the JSON.`;
     if(d.detectedProperty && PROPS[d.detectedProperty]){
       if(!$c('f-prop').value) $c('f-prop').value=d.detectedProperty;
       propChanged();
+      // Auto-select parking allocation for College St garage door / overhead door work
+      if($c('f-prop').value==='college' && /garage door|overhead door|parking door|garage motor|door operator|tnr door|hormann door|parking level/i.test(($c('f-desc').value||'')+' '+($c('f-vendor').value||''))){
+        $c('f-alloc').value='parking';
+        allocChanged();
+      }
       const propLabel=PROPS[d.detectedProperty].label;
       $c('scan-status').innerHTML=`<span class="scan-pill done">✓ Scanned — ${propLabel} — confirm or change</span>`;
       toast(`Property auto-detected: ${propLabel} — confirm or change`,'ok');
@@ -1067,11 +1072,13 @@ SERVICE UNIT: ${unitCtx}
        – equalSplit — snow removal, electrical, plumbing, exterior/roof, pest, fire, water/sewer, insurance: condo 24.37% / resi 60.10% / comm 15.53%
        – resiWeighted — landscaping, elevator, janitorial/concierge, window cleaning, waste, bank charges: condo 27.975% / resi 68.9947% / comm 3.0303%
        – hvac — HVAC and gas: condo 30.41% / resi 59.46% / comm 10.13%
-       – parking — garage/parking: condo 64.29% / resi 31.72% / comm 3.99%
+       – parking — garage doors, overhead doors, parking level doors, door operators, garage motors, parking structure: condo 64.29% / resi 31.72% / comm 3.99%
+           GL for parking: condo portion → 7000-3085 (Resi R&M – Garage and Parking); resi portion → 7000-3085; comm portion → 6100-2600 (net, HST ITC recoverable)
+           GARAGE DOOR RULE: any invoice mentioning "garage door", "overhead door", "parking door", "garage motor", "door operator", "TNR door", "Hormann door", or "parking level" MUST use parking allocation — even if the invoice says "commercial service call". That label is the vendor's billing type, NOT the cost allocation. The physical asset (garage door) determines the allocation key.
        – hallway — carpet cleaning, dust control mats in corridors: condo 20% / resi 80% / comm 0%
        – amenityInternet — in-suite internet and cable: condo 20.5357% / resi 79.4643% / comm 0%
        – propertyTax — property tax ONLY (never for operating costs): condo 3.944% / resi 57.9379% / comm 38.1181%
-       CRITICAL: snow removal → equalSplit; landscaping → resiWeighted — these use DIFFERENT allocation keys, never swap them
+       CRITICAL: snow removal → equalSplit; landscaping → resiWeighted; garage door/overhead door/door operator → parking — these use DIFFERENT allocation keys, never swap them
    • 1924 Eglinton Ave W (mixed — resi 19,071 sf / comm 2,310 sf): standard 80% resi / 20% comm. Janitorial only: 90% resi / 10% comm.
    • 901 College St: 100% residential, HST not recoverable.
 
