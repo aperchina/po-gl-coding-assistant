@@ -1118,6 +1118,8 @@ SERVICE UNIT: ${unitCtx}
    • "no AC", "AC not working", "not cooling", "no air conditioning" = AC fault → 7000-3010 resi or 6100-1000 comm
    • "no power", "breaker tripped", "lights out" = electrical fault → 7000-3030 resi or 6100-2000 comm
    • "elevator stuck", "elevator callback" = elevator fault → 7000-3040 resi or 6100-2100 comm
+   • "debris removal", "debris disposal", "waste removal", "garbage removal", "junk removal", "disposal of debris", "haul away", "clean out", "cleanout" = waste/debris disposal → 7000-2045 resi or 6300-4000 comm (one-off); recurring contract → 7000-4050 resi SC or 6200-2500 comm SC
+     CRITICAL: Do NOT use 7000-3110 (In-Suite Misc) or 7000-3130 (Extra Janitorial) for debris/waste disposal. Waste removal is a distinct category. Only use janitorial codes when the invoice is specifically for cleaning services (mopping, sweeping, general cleaning), never for hauling/disposal.
 
 6. UNIT-SPECIFIC OVERRIDE — SERVICE UNIT field above drives this:
    When SERVICE UNIT is identified, the cost is 100% that unit's pool — never apply a building-wide split:
