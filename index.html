@@ -767,6 +767,7 @@ BILLING ADDRESS — ALWAYS IGNORE FOR UNIT AND PROPERTY:
 
 SERVICE UNIT — LINE ITEMS ONLY:
 The service unit is found inside the LINE ITEMS section: description fields, reference notes, work order details, or address fields within individual line items. Look for patterns like "Unit 701", "Apt 404", "Suite 12", "701-7 Fairbank", "875 College St Unit 12". Do not use the top-level billing/remit-to block.
+IMPORTANT — "7 Fairbank" or "7 Fairbank Ave" alone is a BUILDING ADDRESS (1924 Eglinton Ave W property), NOT a unit number. Only treat it as unit-specific when a unit/suite/apt number precedes it — e.g. "701-7 Fairbank", "Unit 701, 7 Fairbank Ave". If the invoice says only "7 Fairbank Ave" with no unit number, set serviceUnit to null.
 
 PO REFERENCE — INTERNAL REFERENCE FIELD:
 Our PO number is a reference we add to the invoice — look for it labelled "PO#", "PO Number", "Customer PO", "Reference", or "Purchase Order". It is a number like "21030" or a string like "PO 21030". This is never the vendor name.
@@ -1120,6 +1121,8 @@ SERVICE UNIT: ${unitCtx}
    • "elevator stuck", "elevator callback" = elevator fault → 7000-3040 resi or 6100-2100 comm
    • "debris removal", "debris disposal", "waste removal", "garbage removal", "junk removal", "disposal of debris", "haul away", "clean out", "cleanout" = waste/debris disposal → 7000-2045 resi or 6300-4000 comm (one-off); recurring contract → 7000-4050 resi SC or 6200-2500 comm SC
      CRITICAL: Do NOT use 7000-3110 (In-Suite Misc) or 7000-3130 (Extra Janitorial) for debris/waste disposal. Waste removal is a distinct category. Only use janitorial codes when the invoice is specifically for cleaning services (mopping, sweeping, general cleaning), never for hauling/disposal.
+   • "graffiti", "graffiti removal", "remove graffiti", "paint over graffiti", "vandalism repair" = exterior building surface → 7000-3050 resi (Exterior/Roof) or 6100-2200 comm (Exterior/Roof)
+     CRITICAL: Do NOT use 7000-3110 (In-Suite Misc) for graffiti. Graffiti is always an exterior surface issue regardless of which wall or surface is affected.
 
 6. UNIT-SPECIFIC OVERRIDE — SERVICE UNIT field above drives this:
    When SERVICE UNIT is identified, the cost is 100% that unit's pool — never apply a building-wide split:
