@@ -37,17 +37,20 @@ One large file containing HTML, CSS, and JavaScript. No framework, no bundler. K
 
 - **CSS** (lines 7–455): CSS custom properties (`--gold`, `--navy`, etc.), layout, component styles, print-only rules (`@media print`)
 - **HTML** (lines 456–657): Four card sections — Invoice Scan, Invoice Details form, GL Suggestion panel, Cost Allocation table — plus a PO preview and history/reference panels
-- **JS constants** (lines 458–660):
+- **JS constants** (lines 458–680):
   - `MODEL` — Claude model used for all AI calls (`claude-haiku-4-5-20251001`)
   - `HST = 0.13` — Canadian HST rate
   - `PROPS` — property registry (keys: `772queen`, `1133yonge`, `college`, `eglinton`, `901college`). Each entry has `label`, `legal`, `address`, `type` (`residential`/`commercial`/`mixed`/`mixed3`), square footage, and an `allocs` array of named allocation schedules
   - `GL` — full Yardi GL code list with `code`, `name`, `cat`, `hst` treatment (`resi`/`comm`/`exempt`/`mixed`), `uses` description, and optional `flag`
-- **JS functions** (lines 663–1340):
-  - `scanInvoice()` — sends base64 file to Claude; parses JSON response into form fields; sets `invoiceServiceUnit` / `invoiceUnitPool` globals; auto-triggers `suggestGL()`
-  - `suggestGL()` — sends description + property context to Claude; keyword-matches description for warning flags before rendering results
+  - `RESI_TO_COMM` — maps every residential 7000-series GL code to its commercial 6100/6200/6300/6500 equivalent; used by both `buildPO()` and `calcAlloc()` to show per-pool GL codes on split invoices
+  - `glByCode(code)` — looks up a GL entry from `GL` by code string
+- **JS functions** (lines 680–1380):
+  - `scanInvoice()` — sends base64 file to Claude; parses JSON response into form fields; sets `invoiceServiceUnit` / `invoiceUnitPool` globals; auto-selects `parking` allocation at College St when description contains garage door keywords; auto-triggers `suggestGL()`
+  - `suggestGL()` — sends description + property context to Claude; keyword-matches description for warning flags before rendering results; calls `calcAlloc()` after setting `selCode` so the GL code column in the allocation table is populated
   - `getActiveSplit()` — single source of truth for resi/comm/condo split percentages; used by both `calcAlloc()` and `buildPO()`
-  - `calcAlloc()` — recalculates the allocation table whenever amount, property, alloc schedule, HST toggle, or manual split changes
-  - `buildPO()` — renders the printable PO preview from current form state
+  - `calcAlloc()` — recalculates the allocation table whenever amount, property, alloc schedule, HST toggle, or manual split changes; reads `selCode` (or `sel-code` input as fallback) to fill the GL Code column per pool
+  - `pickGL(code, name, el)` — called when user clicks a GL suggestion row; sets `selCode` and calls `calcAlloc()` to refresh the GL code column
+  - `buildPO()` — renders the printable PO preview from current form state; uses `RESI_TO_COMM` to assign pool-specific GL codes per line item
   - `callClaude(body)` — thin fetch wrapper to `/api/claude`
 
 ### `api/claude.js` — Vercel serverless proxy
@@ -60,6 +63,9 @@ Accepts POST, transforms any `{type:"image", media_type:"application/pdf"}` bloc
 - `commercial` (1133 Yonge): HST fully recoverable as ITC — post net
 - `mixed` (772 Queen, Eglinton): split by sq footage; resi portion = gross, comm portion = net + ITC
 - `mixed3` (College St): three-way split — resi / comm / condo; each has named allocation schedules (equalSplit, resiWeighted, hvac, parking, hallway, amenityInternet, propertyTax)
+
+**Condo pool HST (College St):**
+Condo is NOT treated like residential. Condo costs are recovered through condo fees, so HST is ITC recoverable — same treatment as commercial: post net amount, HST shows as "+ ITC" in green. In `calcAlloc()` the condo pool uses `hstType:'condo'`, which falls into the ITC branch (not the resi/inclusive-cost branch).
 
 **HST in/out toggle (`f-hst-in`):**
 - `yes` — invoice total is gross (HST already included); back-calculate net
@@ -79,10 +85,21 @@ Accepts POST, transforms any `{type:"image", media_type:"application/pdf"}` bloc
 - `6300-xxxx` = commercial utilities
 - `1850-1000` = balance sheet (post-construction holdbacks) — requires manager approval
 
+**Per-pool GL codes on split invoices:**
+When an invoice is split across pools, each pool gets its own GL code — not the same code for all lines. `RESI_TO_COMM` maps the selected resi code to its comm equivalent. In both `buildPO()` line items and the `calcAlloc()` GL Code column:
+- Resi pool → selected code (7000-series)
+- Condo pool → selected code + "(Condo)" label
+- Comm pool → `RESI_TO_COMM[selectedCode]`
+
+The GL code column in `calcAlloc()` is populated by `suggestGL()` calling `calcAlloc()` after it resolves, and by `pickGL()` doing the same. Without this re-call the column shows dashes because `calcAlloc()` fires first (via `amtChanged()`) before `selCode` is set.
+
+**Garage door / parking allocation at College St:**
+Any work involving garage doors, overhead doors, door operators, garage motors, or parking level doors must use the `parking` allocation schedule (condo 64.29% / resi 31.72% / comm 3.99%) — regardless of whether the vendor labels it "commercial service call". The physical asset determines the schedule, not the vendor billing type. Keywords that trigger auto-selection on scan: `garage door|overhead door|parking door|garage motor|door operator|tnr door|hormann door|parking level`. GL codes: resi/condo → `7000-3085`, comm → `6100-2600`.
+
 **Warning flags in GL panel:**
-Client-side regex on description triggers amber banners before showing GL codes:
-- After Service / Post-Construction: `deficien|warranty|commissioning|new construction|builder|tarion|...`
-- Building Improvement / Capital: `replace entire|new installation|full replacement|upgrade|new boiler|...`
+Client-side regex on description triggers amber banners at the top of the GL suggestion panel (above codes, non-blocking):
+- After Service / Post-Construction: `deficien|warranty|commissioning|new construction|builder|tarion|touch.?up after|post.?construct|handover`
+- Building Improvement / Capital: `replace entire|new installation|full replacement|upgrade|new boiler|new elevator|new roof|new windows|new entry system|new hvac|capital|major renovation|gut renovation`
 
 **PO print:**
 Print button calls `window.print()`. CSS hides everything except `#po-card`. The `no-print` class suppresses elements in print view. `print-color-adjust:exact` preserves the dark header background.
