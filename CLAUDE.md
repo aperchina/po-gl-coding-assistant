@@ -103,6 +103,15 @@ Keywords "debris removal", "debris disposal", "waste removal", "garbage removal"
 
 Do NOT use `7000-3110` (In-Suite Misc) or `7000-3130` (Extra Janitorial) for disposal/hauling — those are only for actual cleaning services (mopping, sweeping). This distinction is enforced via an explicit CRITICAL note in the GL suggestion prompt's WORK TYPE HINTS section.
 
+**Graffiti / vandalism GL mapping:**
+Graffiti is always an exterior building surface issue. Keywords "graffiti", "graffiti removal", "remove graffiti", "paint over graffiti", "vandalism repair" map to Exterior/Roof codes: `7000-3050` resi / `6100-2200` comm. Never `7000-3110` (In-Suite Misc).
+
+**"7 Fairbank" is a building address, not a unit:**
+At 1924 Eglinton Ave W, "7 Fairbank" or "7 Fairbank Ave" alone is the building address — `serviceUnit` must be null and the standard 80/20 building-wide split applies. Only treat it as unit-specific when a unit/suite/apt number precedes it (e.g. "701-7 Fairbank Ave" = Unit 701). This rule is enforced in the scan prompt's SERVICE UNIT section.
+
+**PO total always equals the invoice total:**
+`buildPO()` uses a two-pass approach: first compute all pool amounts with `lineTotal = poolNet + poolHst` (gross) for every pool including comm and condo, then apply a rounding correction to the largest pool so the sum of all line totals equals the entered invoice total exactly. Comm and condo rows show a "GL post: $X.XX net + ITC" sub-note under the total so the posting instruction is clear. Prior to this fix the PO total was understated because comm/condo rows used `lineTotal = poolNet` (net only).
+
 **Warning flags in GL panel:**
 Client-side regex on description triggers amber banners at the top of the GL suggestion panel (above codes, non-blocking):
 - After Service / Post-Construction: `deficien|warranty|commissioning|new construction|builder|tarion|touch.?up after|post.?construct|handover`
