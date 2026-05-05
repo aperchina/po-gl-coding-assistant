@@ -1271,9 +1271,9 @@ function buildPO(){
   }
 
   const singleResiPO=pools.length===1&&pools[0].type==='resi';
-  let grandTotal=0;
-  const lines=pools.map(pool=>{
-    // Pool-specific GL code: comm pool gets the mapped 6100/6200 equivalent; condo gets resi code with note
+
+  // First pass: compute all pool amounts (lineTotal = gross for every pool)
+  const poolCalcs=pools.map(pool=>{
     let poolCode,poolCodeName;
     if(pool.type==='comm'){
       const mapped=RESI_TO_COMM[code];
@@ -1285,28 +1285,48 @@ function buildPO(){
     } else {
       poolCode=code;poolCodeName=name;
     }
-
     const pct=pool.pct/100;
     const poolNet=parseFloat((netTotal*pct).toFixed(2));
     let poolHst=0,hstLabel='—',lineTotal=0;
-    if(hstIn==='exempt'){poolHst=0;hstLabel='Exempt';lineTotal=poolNet}
-    else if(pool.type==='resi'){
+    if(hstIn==='exempt'){
+      poolHst=0;hstLabel='Exempt';lineTotal=poolNet;
+    } else if(pool.type==='resi'){
       poolHst=parseFloat((poolNet*HST).toFixed(2));
       hstLabel=`${fmt(poolHst)} (cost)`;
       lineTotal=(singleResiPO&&hstIn==='yes')?total:poolNet+poolHst;
     } else {
+      // Comm and condo: lineTotal is also gross so PO reconciles to invoice total
       poolHst=parseFloat((poolNet*HST).toFixed(2));
       hstLabel=`${fmt(poolHst)} ITC`;
-      lineTotal=poolNet;
+      lineTotal=poolNet+poolHst;
     }
-    grandTotal+=(singleResiPO&&hstIn==='yes')?total:(poolNet+(pool.type==='resi'?poolHst:0));
+    return {pool,poolCode,poolCodeName,poolNet,poolHst,hstLabel,lineTotal};
+  });
+
+  // Rounding fix: adjust largest pool so sum of line totals == invoice total
+  if(hstIn!=='exempt'&&!(singleResiPO&&hstIn==='yes')){
+    const sumLines=parseFloat(poolCalcs.reduce((s,p)=>s+p.lineTotal,0).toFixed(2));
+    const diff=parseFloat((total-sumLines).toFixed(2));
+    if(diff!==0){
+      const maxIdx=poolCalcs.reduce((mi,p,i)=>p.lineTotal>poolCalcs[mi].lineTotal?i:mi,0);
+      poolCalcs[maxIdx].lineTotal=parseFloat((poolCalcs[maxIdx].lineTotal+diff).toFixed(2));
+    }
+  }
+
+  let grandTotal=0;
+  const lines=poolCalcs.map(({pool,poolCode,poolCodeName,poolNet,poolHst,hstLabel,lineTotal})=>{
+    grandTotal+=lineTotal;
+    // Comm/condo rows note the net amount that actually gets posted to GL
+    const totalCell=(pool.type!=='resi'&&hstIn!=='exempt')
+      ?`${fmt(lineTotal)}<div style="font-size:10px;color:var(--muted);margin-top:1px;font-style:italic">GL post: ${fmt(poolNet)} net + ITC</div>`
+      :fmt(lineTotal);
     return `<tr>
       <td>${desc}<div style="font-size:11px;color:var(--muted);margin-top:2px;font-style:italic">${poolCodeName}</div></td>
       <td><span class="gl-chip">${poolCode}</span></td>
       <td><span class="hst-tag ${pool.type==='resi'?'hst-resi':pool.type==='comm'?'hst-comm':'hst-mixed'}" style="font-size:10.5px">${pool.label} ${pool.pct.toFixed(2)}%</span></td>
       <td class="ra">${fmt(poolNet)}</td>
       <td class="ra" style="font-size:12px;color:var(--muted)">${hstLabel}</td>
-      <td class="ra" style="font-weight:700">${fmt(lineTotal)}</td>
+      <td class="ra" style="font-weight:700">${totalCell}</td>
     </tr>`;
   });
 
