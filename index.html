@@ -651,6 +651,25 @@ const GL = [
   {code:'7050-2000',name:'Bad Debt Recovery',                          cat:'bd',  hst:'none',   uses:'Recovery of previously written-off bad debt'},
 ];
 
+// ── RESI → COMM GL CODE MAP ───────────────────────────────────────────────────
+// Maps each residential GL code to its commercial equivalent for split PO lines.
+const RESI_TO_COMM={
+  '7000-3010':'6100-1000','7000-3020':'6100-1100','7000-3030':'6100-2000',
+  '7000-3040':'6100-2100','7000-3050':'6100-2200','7000-3060':'6100-2300',
+  '7000-3070':'6100-2400','7000-3080':'6100-2500','7000-3085':'6100-2600',
+  '7000-3090':'6100-3100','7000-3110':'6100-3200','7000-3130':'6100-3220',
+  '7000-3140':'6100-3230',
+  '7000-4010':'6200-3400','7000-4020':'6200-5100','7000-4030':'6200-3100',
+  '7000-4035':'6200-3105','7000-4040':'6200-4100','7000-4050':'6200-2500',
+  '7000-4060':'6200-2100','7000-4070':'6200-2200','7000-4080':'6200-2400',
+  '7000-4090':'6200-3200','7000-4100':'6200-2300','7000-4110':'6200-1100',
+  '7000-4120':'6200-1200',
+  '7000-2010':'6300-1000','7000-2020':'6300-2000','7000-2030':'6300-5000',
+  '7000-2040':'6300-3000','7000-2045':'6300-4000',
+  '7000-1000':'6500-1000',
+};
+function glByCode(c){return GL.find(g=>g.code===c)||null}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('f-po').value = genPO();
@@ -1240,6 +1259,19 @@ function buildPO(){
   const singleResiPO=pools.length===1&&pools[0].type==='resi';
   let grandTotal=0;
   const lines=pools.map(pool=>{
+    // Pool-specific GL code: comm pool gets the mapped 6100/6200 equivalent; condo gets resi code with note
+    let poolCode,poolCodeName;
+    if(pool.type==='comm'){
+      const mapped=RESI_TO_COMM[code];
+      if(mapped){poolCode=mapped;poolCodeName=glByCode(mapped)?.name||mapped;}
+      else if(/^6[0-9]/.test(code)){poolCode=code;poolCodeName=name;}
+      else{poolCode=code;poolCodeName=name+' (verify comm code)';}
+    } else if(pool.type==='condo'){
+      poolCode=code;poolCodeName=name+' (Condo)';
+    } else {
+      poolCode=code;poolCodeName=name;
+    }
+
     const pct=pool.pct/100;
     const poolNet=parseFloat((netTotal*pct).toFixed(2));
     let poolHst=0,hstLabel='—',lineTotal=0;
@@ -1247,8 +1279,6 @@ function buildPO(){
     else if(pool.type==='resi'){
       poolHst=parseFloat((poolNet*HST).toFixed(2));
       hstLabel=`${fmt(poolHst)} (cost)`;
-      // Rounding shortcut only when total already includes HST; when hstIn==='no'
-      // total is net so gross must be computed.
       lineTotal=(singleResiPO&&hstIn==='yes')?total:poolNet+poolHst;
     } else {
       poolHst=parseFloat((poolNet*HST).toFixed(2));
@@ -1257,8 +1287,8 @@ function buildPO(){
     }
     grandTotal+=(singleResiPO&&hstIn==='yes')?total:(poolNet+(pool.type==='resi'?poolHst:0));
     return `<tr>
-      <td>${desc}</td>
-      <td><span class="gl-chip">${code}</span></td>
+      <td>${desc}<div style="font-size:11px;color:var(--muted);margin-top:2px;font-style:italic">${poolCodeName}</div></td>
+      <td><span class="gl-chip">${poolCode}</span></td>
       <td><span class="hst-tag ${pool.type==='resi'?'hst-resi':pool.type==='comm'?'hst-comm':'hst-mixed'}" style="font-size:10.5px">${pool.label} ${pool.pct.toFixed(2)}%</span></td>
       <td class="ra">${fmt(poolNet)}</td>
       <td class="ra" style="font-size:12px;color:var(--muted)">${hstLabel}</td>
