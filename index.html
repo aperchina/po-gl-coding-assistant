@@ -321,7 +321,7 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
           <div class="fg"><label>Comm % (manual)</label><input type="number" id="f-comm-pct" placeholder="e.g. 50" min="0" max="100" step="0.01" oninput="manualSplitCommChanged()"/></div>
         </div>
         <div class="frow c1">
-          <div class="fg"><label>Notes</label><input id="f-notes" placeholder="Budget ref, work order, tenant, etc."/></div>
+          <div class="fg"><label>Notes</label><input id="f-notes" placeholder="Budget ref, work order, tenant, etc." oninput="calcAlloc()"/></div>
         </div>
         <div class="brow">
           <button class="btn btn-gold" onclick="suggestGL()" id="gl-btn">✨ Suggest GL Code</button>
@@ -960,6 +960,18 @@ function getActiveSplit(){
       return {resi:0,comm:0,condo:100,label:'100% Condo (unit-specific)',note:`Repair to ${invoiceServiceUnit} — 100% condo pool. HST is ITC recoverable — post net amount, HST claimed as ITC. No resi/comm split.`};
     }
     return {resi:100,comm:0,condo:0,label:'100% Residential (unit-specific)',note:`Repair to ${invoiceServiceUnit} — 100% residential, HST inclusive (non-recoverable). No commercial split.`};
+  }
+  // Eglinton address-based pool detection
+  // "7 Fairbank" / "Fairbank" in desc or notes = 100% residential side
+  // "1924 Eglinton" / "1928 Eglinton" / tenant name in desc or notes = 100% commercial side
+  if(pid==='eglinton'){
+    const descText=($c('f-desc').value+' '+$c('f-notes').value).toLowerCase();
+    if(/7 fairbank|fairbank/.test(descText)){
+      return {resi:100,comm:0,condo:0,label:'100% Residential (7 Fairbank — residential side)',note:'Work performed at 7 Fairbank Ave — residential side of building. 100% residential pool, HST inclusive non-recoverable.'};
+    }
+    if(/1924 eglinton|1928 eglinton|kfc/.test(descText)){
+      return {resi:0,comm:100,condo:0,label:'100% Commercial (Eglinton Ave — commercial side)',note:'Work performed at Eglinton Ave frontage or commercial tenant space. 100% commercial pool, HST fully recoverable as ITC.'};
+    }
   }
   const p=PROPS[pid];
   const aid=$c('f-alloc').value;
