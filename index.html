@@ -1081,12 +1081,14 @@ async function suggestGL(){
   const propLabel=pid?PROPS[pid]?.label:'Not specified';
   const propType=pid?PROPS[pid]?.type:'unknown';
 
+  const notesVal=$c('f-notes').value.trim();
   const unitCtx=invoiceServiceUnit?`${invoiceServiceUnit} (${invoiceUnitPool==='condo'?'condo unit':'residential unit'} — 100% unit pool, never building-wide)`:'not identified — apply building-wide allocation';
   const prompt=`You are a Canadian property management accountant for Roxborough Communities. Suggest the correct Yardi GL code(s) for the invoice below.
 
 PROPERTY: ${propLabel} (type: ${propType})
 VENDOR: ${vendor||'not specified'}
 DESCRIPTION: ${desc}
+LOCATION/NOTES: ${notesVal||'not specified'}
 AMOUNT: ${$c('f-amt').value||'not specified'}
 SERVICE UNIT: ${unitCtx}
 
@@ -1128,6 +1130,7 @@ SERVICE UNIT: ${unitCtx}
      – Tenant named directly (e.g. "KFC", "KFC unit", "ground floor retail") = 100% commercial.
      – No location signal in description = apply standard 80% resi / 20% comm building-wide split.
      EXAMPLES: "clean exterior windows at 7 Fairbank" → 100% resi. "repair RTU at 1928 Eglinton" → 100% comm. "replace faucet Unit 701, 7 Fairbank Ave" → 100% resi unit-specific. "KFC grease trap" → 100% comm.
+     IMPORTANT: Also check the LOCATION/NOTES field above for address clues — the scan may have placed the service location there rather than in the description. If LOCATION/NOTES contains "7 Fairbank" or "Fairbank", apply the residential-side rule. If it contains "1924 Eglinton" or "1928 Eglinton" or a tenant name, apply the commercial-side rule.
    • 901 College St: 100% residential, HST not recoverable.
 
 4. SPECIAL FLAGS — include in the flag field:
