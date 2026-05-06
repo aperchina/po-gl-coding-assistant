@@ -965,13 +965,16 @@ function getActiveSplit(){
   // "7 Fairbank" / "Fairbank" in desc or notes = 100% residential side
   // "1924 Eglinton" / "1928 Eglinton" / tenant name in desc or notes = 100% commercial side
   if(pid==='eglinton'){
-    const descText=($c('f-desc').value+' '+$c('f-notes').value).toLowerCase();
-    if(/7 fairbank|fairbank/.test(descText)){
-      return {resi:100,comm:0,condo:0,label:'100% Residential (7 Fairbank — residential side)',note:'Work performed at 7 Fairbank Ave — residential side of building. 100% residential pool, HST inclusive non-recoverable.'};
+    // Only check the description field — NOT notes — to avoid false positives
+    // from the Yardi comment which always contains the property address
+    const descOnly=$c('f-desc').value.toLowerCase();
+    if(/7 fairbank|fairbank/.test(descOnly)){
+      return {resi:100,comm:0,condo:0,label:'100% Residential (7 Fairbank — residential side)',note:'Work description references 7 Fairbank Ave — residential side of building. 100% residential pool, HST inclusive non-recoverable.'};
     }
-    if(/1924 eglinton|1928 eglinton|kfc/.test(descText)){
-      return {resi:0,comm:100,condo:0,label:'100% Commercial (Eglinton Ave — commercial side)',note:'Work performed at Eglinton Ave frontage or commercial tenant space. 100% commercial pool, HST fully recoverable as ITC.'};
+    if(/1924 eglinton|1928 eglinton|kfc/.test(descOnly)){
+      return {resi:0,comm:100,condo:0,label:'100% Commercial (Eglinton Ave — commercial side)',note:'Work description references Eglinton Ave frontage or commercial tenant. 100% commercial pool, HST fully recoverable as ITC.'};
     }
+    // No address signal in description = standard 80/20 building-wide split
   }
   const p=PROPS[pid];
   const aid=$c('f-alloc').value;
