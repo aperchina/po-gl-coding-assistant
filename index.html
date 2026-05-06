@@ -1081,7 +1081,7 @@ SERVICE UNIT: ${unitCtx}
 1. R&M vs SERVICE CONTRACT — this is the most important distinction:
    • R&M (6100-xxxx comm / 7000-3xxx resi): called in because something broke — one-off work order, fault/emergency callback, unplanned repair.
    • Service Contract (6200-xxxx comm / 7000-4xxx resi): planned recurring contract — invoice says "monthly maintenance", references a contract period, or is an annual inspection under a standing agreement.
-   • If the work looks like a full replacement or new install (not repair), flag it: "May be capital — confirm with Controller before posting as operating expense."
+   • If the work looks like a full replacement or new install (not repair), LEAD WITH 1850-1000 as the primary suggestion and flag it: "BALANCE SHEET CODE — Manager approval required. Recode to R&M if Controller confirms this is a repair."
 
 2. HST TREATMENT:
    • Residential property: post FULL GROSS amount (HST is a cost, no ITC).
@@ -1110,7 +1110,7 @@ SERVICE UNIT: ${unitCtx}
    • 901 College St: 100% residential, HST not recoverable.
 
 4. SPECIAL FLAGS — include in the flag field:
-   • Code 1850-1000: "BALANCE SHEET CODE — Manager approval required"
+   • Code 1850-1000: "BALANCE SHEET CODE — Manager approval required. If Controller determines this is a repair rather than new installation or capital improvement, recode to the appropriate R&M code (e.g. 7000-3050 Exterior/Roof for resi, 6100-2200 for comm)."
    • Code 7050-1000: "Manager approval required"
    • Any capital/replacement situation: "May be capital — confirm with Controller before posting as operating expense"
 
@@ -1119,6 +1119,8 @@ SERVICE UNIT: ${unitCtx}
    • "no AC", "AC not working", "not cooling", "no air conditioning" = AC fault → 7000-3010 resi or 6100-1000 comm
    • "no power", "breaker tripped", "lights out" = electrical fault → 7000-3030 resi or 6100-2000 comm
    • "elevator stuck", "elevator callback" = elevator fault → 7000-3040 resi or 6100-2100 comm
+   • "install", "new installation", "we install", "installed", "re/re" (remove and replace = full component swap), "flash install", "flashing install", "metal flashing" combined with "install" = likely post-construction or capital improvement → 1850-1000 (After Service Post-Construction / Balance Sheet) should be the PRIMARY suggestion, with a flag: "BALANCE SHEET CODE — Manager approval required. If this is a repair to existing flashing rather than new installation, use 7000-3050 resi / 6100-2200 comm (R&M Exterior/Roof) instead and expense on the income statement."
+     CRITICAL: When the description contains "install" or "we install" or "new installation" or "re/re" (which means remove and replace, i.e. full component swap), lead with 1850-1000 as the PRIMARY code. Include the R&M exterior code as the second suggestion with a note that it applies if the Controller determines this is a repair rather than a capital item.
    • "debris removal", "debris disposal", "waste removal", "garbage removal", "junk removal", "disposal of debris", "haul away", "clean out", "cleanout", "dump run", "bin rental", "dumpster", "skip bin", "rubbish removal", "trash removal" = waste/debris disposal → 7000-2045 resi or 6300-4000 comm (one-off); recurring contract → 7000-4050 resi SC or 6200-2500 comm SC
      CRITICAL: Do NOT use 7000-3110 (In-Suite Misc) or 7000-3130 (Extra Janitorial) for debris/waste disposal. Waste removal is a distinct category. Only use janitorial codes when the invoice is specifically for cleaning services (mopping, sweeping, general cleaning), never for hauling/disposal.
      MANDATORY OVERRIDE: If ANY waste/debris keyword appears anywhere in the description, you MUST return 7000-2045 (resi) or 6300-4000 (comm) as the primary code for a one-off job, or 7000-4050 / 6200-2500 for a recurring contract. Returning 7000-3110 or 7000-3130 for any disposal/hauling work is an error.
