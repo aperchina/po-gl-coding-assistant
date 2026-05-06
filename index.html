@@ -903,7 +903,7 @@ function propChanged(){
     $c('unit-alloc-label').textContent=invoiceServiceUnit;
     if(invoiceUnitPool==='condo'){
       $c('unit-alloc-title').textContent='100% Condo — Unit-Specific';
-      $c('unit-alloc-hst').textContent='full gross amount, HST inclusive (condo unit cost).';
+      $c('unit-alloc-hst').textContent='HST is ITC recoverable — post net amount, HST claimed as ITC (same as commercial treatment).';
     } else {
       $c('unit-alloc-title').textContent='100% Residential — Unit-Specific';
       $c('unit-alloc-hst').textContent='full gross amount, HST inclusive (non-recoverable).';
@@ -956,7 +956,7 @@ function getActiveSplit(){
   // Unit-specific repair overrides to 100% of that unit's pool
   if(invoiceServiceUnit){
     if(invoiceUnitPool==='condo'){
-      return {resi:0,comm:0,condo:100,label:'100% Condo (unit-specific)',note:`Repair to ${invoiceServiceUnit} — 100% condo pool. HST is a cost for condo unit repairs. No resi/comm split.`};
+      return {resi:0,comm:0,condo:100,label:'100% Condo (unit-specific)',note:`Repair to ${invoiceServiceUnit} — 100% condo pool. HST is ITC recoverable — post net amount, HST claimed as ITC. No resi/comm split.`};
     }
     return {resi:100,comm:0,condo:0,label:'100% Residential (unit-specific)',note:`Repair to ${invoiceServiceUnit} — 100% residential, HST inclusive (non-recoverable). No commercial split.`};
   }
@@ -1119,10 +1119,12 @@ SERVICE UNIT: ${unitCtx}
    • "no AC", "AC not working", "not cooling", "no air conditioning" = AC fault → 7000-3010 resi or 6100-1000 comm
    • "no power", "breaker tripped", "lights out" = electrical fault → 7000-3030 resi or 6100-2000 comm
    • "elevator stuck", "elevator callback" = elevator fault → 7000-3040 resi or 6100-2100 comm
-   • "debris removal", "debris disposal", "waste removal", "garbage removal", "junk removal", "disposal of debris", "haul away", "clean out", "cleanout" = waste/debris disposal → 7000-2045 resi or 6300-4000 comm (one-off); recurring contract → 7000-4050 resi SC or 6200-2500 comm SC
+   • "debris removal", "debris disposal", "waste removal", "garbage removal", "junk removal", "disposal of debris", "haul away", "clean out", "cleanout", "dump run", "bin rental", "dumpster", "skip bin", "rubbish removal", "trash removal" = waste/debris disposal → 7000-2045 resi or 6300-4000 comm (one-off); recurring contract → 7000-4050 resi SC or 6200-2500 comm SC
      CRITICAL: Do NOT use 7000-3110 (In-Suite Misc) or 7000-3130 (Extra Janitorial) for debris/waste disposal. Waste removal is a distinct category. Only use janitorial codes when the invoice is specifically for cleaning services (mopping, sweeping, general cleaning), never for hauling/disposal.
-   • "graffiti", "graffiti removal", "remove graffiti", "paint over graffiti", "vandalism repair" = exterior building surface → 7000-3050 resi (Exterior/Roof) or 6100-2200 comm (Exterior/Roof)
+     MANDATORY OVERRIDE: If ANY waste/debris keyword appears anywhere in the description, you MUST return 7000-2045 (resi) or 6300-4000 (comm) as the primary code for a one-off job, or 7000-4050 / 6200-2500 for a recurring contract. Returning 7000-3110 or 7000-3130 for any disposal/hauling work is an error.
+   • "graffiti", "graffiti removal", "remove graffiti", "paint over graffiti", "vandalism repair", "graffiti cleanup", "remove spray paint", "spray paint on wall" = exterior building surface → 7000-3050 resi (Exterior/Roof) or 6100-2200 comm (Exterior/Roof)
      CRITICAL: Do NOT use 7000-3110 (In-Suite Misc) for graffiti. Graffiti is always an exterior surface issue regardless of which wall or surface is affected.
+     MANDATORY OVERRIDE: If ANY graffiti keyword appears anywhere in the description, you MUST return 7000-3050 (resi) or 6100-2200 (comm) as the primary code. Returning any other code for graffiti is an error.
 
 6. UNIT-SPECIFIC OVERRIDE — SERVICE UNIT field above drives this:
    When SERVICE UNIT is identified, the cost is 100% that unit's pool — never apply a building-wide split:
