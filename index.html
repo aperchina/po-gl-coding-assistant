@@ -1029,14 +1029,14 @@ function calcAlloc(){
   $c('alloc-summary').innerHTML=`<strong>${p.label}</strong> · ${split.label||''} · Invoice: <strong>${fmt(total)}</strong> ${hstIn==='exempt'?'(HST Exempt)':hstIn==='yes'?'(HST Included)':'(+ HST)'} · Net: <strong>${fmt(netTotal)}</strong> · HST: <strong>${fmt(hstTotal)}</strong>`;
 
   const tbody=$c('alloc-tbody');
+  const activeCodeForTable=selCode||$c('sel-code')?.value||'';
   tbody.innerHTML=rows.map(r=>{
-    const activeCode=selCode||$c('sel-code')?.value||'';
+    const activeCode=activeCodeForTable;
     let rowGL='—';
-    if(activeCode){
-      if(activeCode==='1850-1000'){
-        // Balance sheet code: always show 1850-1000 regardless of pool
-        rowGL='1850-1000';
-      } else if(r.key==='comm'){
+    if(activeCode==='1850-1000'){
+      rowGL='1850-1000';
+    } else if(activeCode){
+      if(r.key==='comm'){
         rowGL=RESI_TO_COMM[activeCode]||(/^6[0-9]/.test(activeCode)?activeCode:'—');
       } else {
         rowGL=activeCode;
