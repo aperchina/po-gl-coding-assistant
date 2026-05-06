@@ -1031,11 +1031,17 @@ function calcAlloc(){
   const tbody=$c('alloc-tbody');
   tbody.innerHTML=rows.map(r=>{
     const activeCode=selCode||$c('sel-code')?.value||'';
-    const rowGL=activeCode
-      ?(r.key==='comm'
-          ?(RESI_TO_COMM[activeCode]||(/^6[0-9]/.test(activeCode)?activeCode:'—'))
-          :activeCode)
-      :'—';
+    let rowGL='—';
+    if(activeCode){
+      if(activeCode==='1850-1000'){
+        // Balance sheet code: always show 1850-1000 regardless of pool
+        rowGL='1850-1000';
+      } else if(r.key==='comm'){
+        rowGL=RESI_TO_COMM[activeCode]||(/^6[0-9]/.test(activeCode)?activeCode:'—');
+      } else {
+        rowGL=activeCode;
+      }
+    }
     return `<tr>
       <td><span class="hst-tag ${r.hstType==='resi'?'hst-resi':r.hstType==='comm'?'hst-comm':'hst-mixed'}">${r.label}</span></td>
       <td><span class="gl-chip" style="font-size:11px">${rowGL}</span></td>
