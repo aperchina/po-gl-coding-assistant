@@ -976,7 +976,14 @@ function calcAlloc(){
   const total=parseFloat($c('f-amt').value)||0;
   if(!total){hideAllocOut();return}
   const hstIn=$c('f-hst-in').value;
-  const split=getActiveSplit();if(!split)return;
+  let split=getActiveSplit();if(!split)return;
+
+  // Balance sheet code 1850-1000: always 100% commercial to recover ITC
+  // regardless of property type or building split — resi portion is not applicable
+  const activeGLCode=selCode||$c('sel-code')?.value||'';
+  if(activeGLCode==='1850-1000'){
+    split={resi:0,comm:100,condo:0,label:'100% Commercial (Balance Sheet — ITC Recovery)',note:'After Service / Post-Construction costs are posted 100% to the commercial pool to recover HST as ITC. No residential allocation applies to balance sheet items.'};
+  }
 
   // Derive net and hst amounts
   let netTotal,hstTotal;
@@ -1237,7 +1244,13 @@ function buildPO(){
   if(!code){toast('Get a GL suggestion or enter a GL code first','err');return}
 
   const pid=$c('f-prop').value;
-  const split=getActiveSplit();
+  let split=getActiveSplit();
+
+  // Balance sheet code 1850-1000: always 100% commercial to recover ITC
+  if(code==='1850-1000'){
+    split={resi:0,comm:100,condo:0,label:'100% Commercial (Balance Sheet — ITC Recovery)',note:'After Service / Post-Construction costs posted 100% commercial — HST fully recoverable as ITC.'};
+  }
+
   const total=parseFloat($c('f-amt').value)||0;
   const hstIn=$c('f-hst-in').value;
   const po=$c('f-po').value;
