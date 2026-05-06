@@ -768,6 +768,7 @@ BILLING ADDRESS — ALWAYS IGNORE FOR UNIT AND PROPERTY:
 SERVICE UNIT — LINE ITEMS ONLY:
 The service unit is found inside the LINE ITEMS section: description fields, reference notes, work order details, or address fields within individual line items. Look for patterns like "Unit 701", "Apt 404", "Suite 12", "701-7 Fairbank", "875 College St Unit 12". Do not use the top-level billing/remit-to block.
 IMPORTANT — "7 Fairbank" or "7 Fairbank Ave" alone is a BUILDING ADDRESS (1924 Eglinton Ave W property), NOT a unit number. Only treat it as unit-specific when a unit/suite/apt number precedes it — e.g. "701-7 Fairbank", "Unit 701, 7 Fairbank Ave". If the invoice says only "7 Fairbank Ave" with no unit number, set serviceUnit to null.
+ADDRESS POOL HINT for Eglinton: if the work location in the line items says "7 Fairbank" or "Fairbank" without a unit number, set detectedProperty to "eglinton" and note in workDescription that the work was performed on the residential side (Fairbank address). If the work location says "1924 Eglinton" or "1928 Eglinton" or names a commercial tenant like KFC, note it is the commercial side.
 
 PO REFERENCE — INTERNAL REFERENCE FIELD:
 Our PO number is a reference we add to the invoice — look for it labelled "PO#", "PO Number", "Customer PO", "Reference", or "Purchase Order". It is a number like "21030" or a string like "PO 21030". This is never the vendor name.
@@ -1120,6 +1121,13 @@ SERVICE UNIT: ${unitCtx}
        – propertyTax — property tax ONLY (never for operating costs): condo 3.944% / resi 57.9379% / comm 38.1181%
        CRITICAL: snow removal → equalSplit; landscaping → resiWeighted; garage door/overhead door/door operator → parking — these use DIFFERENT allocation keys, never swap them
    • 1924 Eglinton Ave W (mixed — resi 19,071 sf / comm 2,310 sf): standard 80% resi / 20% comm. Janitorial only: 90% resi / 10% comm.
+     ADDRESS-BASED POOL DETECTION — read the invoice description/location carefully:
+     – "7 Fairbank", "7 Fairbank Ave", "Fairbank" alone in the work description = residential side of the building → 100% residential pool, use 7000-series resi codes, HST inclusive non-recoverable.
+     – A unit number at Fairbank (e.g. "Unit 701, 7 Fairbank", "701-7 Fairbank") = specific residential unit → 100% residential, same treatment.
+     – "1924 Eglinton", "1928 Eglinton", "Eglinton Ave" in the work description = commercial side → 100% commercial pool, use 6100/6200/6300-series comm codes, HST fully recoverable as ITC.
+     – Tenant named directly (e.g. "KFC", "KFC unit", "ground floor retail") = 100% commercial.
+     – No location signal in description = apply standard 80% resi / 20% comm building-wide split.
+     EXAMPLES: "clean exterior windows at 7 Fairbank" → 100% resi. "repair RTU at 1928 Eglinton" → 100% comm. "replace faucet Unit 701, 7 Fairbank Ave" → 100% resi unit-specific. "KFC grease trap" → 100% comm.
    • 901 College St: 100% residential, HST not recoverable.
 
 4. SPECIAL FLAGS — include in the flag field:
