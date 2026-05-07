@@ -46,11 +46,11 @@ One large file containing HTML, CSS, and JavaScript. No framework, no bundler. K
   - `glByCode(code)` — looks up a GL entry from `GL` by code string
 - **JS functions** (lines 680–1380):
   - `scanInvoice()` — sends base64 file to Claude; parses JSON response into form fields; sets `invoiceServiceUnit` / `invoiceUnitPool` globals; auto-selects `parking` allocation at College St when description contains garage door keywords; auto-triggers `suggestGL()`
-  - `suggestGL()` — sends description + property context to Claude; keyword-matches description for warning flags before rendering results; calls `calcAlloc()` after setting `selCode` so the GL code column in the allocation table is populated
-  - `getActiveSplit()` — single source of truth for resi/comm/condo split percentages; used by both `calcAlloc()` and `buildPO()`
-  - `calcAlloc()` — recalculates the allocation table whenever amount, property, alloc schedule, HST toggle, or manual split changes; reads `selCode` (or `sel-code` input as fallback) to fill the GL Code column per pool
+  - `suggestGL()` — sends description + property context + notes field (`LOCATION/NOTES`) to Claude; keyword-matches description for warning flags before rendering results; calls `calcAlloc()` after setting `selCode` so the GL code column in the allocation table is populated
+  - `getActiveSplit()` — single source of truth for resi/comm/condo split percentages; used by both `calcAlloc()` and `buildPO()`. Priority order: (1) unit-specific override, (2) Eglinton address-based detection from description field only, (3) dropdown/manual split
+  - `calcAlloc()` — recalculates the allocation table whenever amount, property, alloc schedule, HST toggle, manual split, or notes field changes; reads `activeCodeForTable` (hoisted outside `.map()`) to fill the GL Code column per pool; overrides split to 100% commercial when `1850-1000` is selected
   - `pickGL(code, name, el)` — called when user clicks a GL suggestion row; sets `selCode` and calls `calcAlloc()` to refresh the GL code column
-  - `buildPO()` — renders the printable PO preview from current form state; uses `RESI_TO_COMM` to assign pool-specific GL codes per line item
+  - `buildPO()` — renders the printable PO preview from current form state; uses `RESI_TO_COMM` to assign pool-specific GL codes per line item; overrides split to 100% commercial when `1850-1000` is selected
   - `callClaude(body)` — thin fetch wrapper to `/api/claude`
 
 ### `api/claude.js` — Vercel serverless proxy
@@ -104,10 +104,21 @@ Keywords "debris removal", "debris disposal", "waste removal", "garbage removal"
 Do NOT use `7000-3110` (In-Suite Misc) or `7000-3130` (Extra Janitorial) for disposal/hauling — those are only for actual cleaning services (mopping, sweeping). This distinction is enforced via an explicit CRITICAL note in the GL suggestion prompt's WORK TYPE HINTS section.
 
 **Graffiti / vandalism GL mapping:**
-Graffiti is always an exterior building surface issue. Keywords "graffiti", "graffiti removal", "remove graffiti", "paint over graffiti", "vandalism repair" map to Exterior/Roof codes: `7000-3050` resi / `6100-2200` comm. Never `7000-3110` (In-Suite Misc).
+Graffiti is always an exterior building surface issue. Keywords "graffiti", "graffiti removal", "remove graffiti", "paint over graffiti", "vandalism repair", "graffiti cleanup", "remove spray paint", "spray paint on wall" map to Exterior/Roof codes: `7000-3050` resi / `6100-2200` comm. Never `7000-3110` (In-Suite Misc). The prompt includes a MANDATORY OVERRIDE so the model cannot return any other code when a graffiti keyword is present.
 
-**"7 Fairbank" is a building address, not a unit:**
-At 1924 Eglinton Ave W, "7 Fairbank" or "7 Fairbank Ave" alone is the building address — `serviceUnit` must be null and the standard 80/20 building-wide split applies. Only treat it as unit-specific when a unit/suite/apt number precedes it (e.g. "701-7 Fairbank Ave" = Unit 701). This rule is enforced in the scan prompt's SERVICE UNIT section.
+**Install / new installation / re-re → 1850-1000 (Balance Sheet):**
+When the description contains "install", "new installation", "we install", "installed", "re/re" (remove and replace), "flash install", "flashing install", or "metal flashing" + "install", the primary suggestion must be `1850-1000` (After Service Post-Construction / Balance Sheet) with a manager approval flag. The R&M exterior code (`7000-3050` / `6100-2200`) is offered as a secondary suggestion for cases where the Controller determines it is a repair rather than a capital item.
+
+**1850-1000 balance sheet override:**
+When `1850-1000` is the selected GL code, both `calcAlloc()` and `buildPO()` override the split to **100% commercial** regardless of property type — balance sheet items are posted to the commercial pool to recover the full HST as ITC. This override is applied immediately after `getActiveSplit()` returns. The GL Code column in `calcAlloc()` reads `activeCodeForTable` (hoisted before `.map()`) so `1850-1000` renders correctly in the comm pool row instead of falling through to `RESI_TO_COMM` and showing a dash.
+
+**Eglinton (1924 Eglinton Ave W) — address-based pool detection:**
+This property has two sides with distinct pool rules. `getActiveSplit()` checks the **description field only** (not notes — the Yardi comment always contains the property address and would cause false positives) for these signals:
+- `7 fairbank` or `fairbank` in description → 100% residential, `7000-series`, HST inclusive
+- `1924 eglinton`, `1928 eglinton`, or `kfc` in description → 100% commercial, `6100/6200/6300-series`, HST ITC
+- No address signal → standard 80/20 building-wide split
+
+"7 Fairbank" or "7 Fairbank Ave" alone is a **building address, not a unit number** — `serviceUnit` stays null unless a unit number precedes it (e.g. "701-7 Fairbank" = Unit 701). The `f-notes` input has `oninput="calcAlloc()"` so the allocation table updates live as the user edits the notes field. The same address rules are encoded in the GL suggestion prompt under PROPERTY ALLOCATIONS and in the scan prompt's SERVICE UNIT section.
 
 **PO total always equals the invoice total:**
 `buildPO()` uses a two-pass approach: first compute all pool amounts with `lineTotal = poolNet + poolHst` (gross) for every pool including comm and condo, then apply a rounding correction to the largest pool so the sum of all line totals equals the entered invoice total exactly. Comm and condo rows show a "GL post: $X.XX net + ITC" sub-note under the total so the posting instruction is clear. Prior to this fix the PO total was understated because comm/condo rows used `lineTotal = poolNet` (net only).
