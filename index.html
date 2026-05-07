@@ -644,7 +644,8 @@ const GL = [
   {code:'8600-1015',name:'Admin Management Fee',                       cat:'fin', hst:'mixed',  uses:'Administrative management fee'},
   {code:'8600-1040',name:'Fund Management Fee',                        cat:'fin', hst:'mixed',  uses:'Fund-level management fee'},
   {code:'8600-1050',name:'Asset Management Fee',                       cat:'fin', hst:'mixed',  uses:'Asset management fee charged by fund manager'},
-  // ── BALANCE SHEET ─────────────────────────────────────────────────────────
+  // ── BALANCE SHEET / CAPITAL ───────────────────────────────────────────────
+  {code:'1700-1300',name:'Buildings – Improvements',                   cat:'c',   hst:'comm',   uses:'Capital improvements to stabilized properties — full replacements, new installations, building upgrades. Always 100% commercial to recover HST as ITC. Controller approval required.', flag:'CAPITAL CODE — Controller approval required'},
   {code:'1850-1000',name:'After Service Post-Construction',            cat:'c',   hst:'mixed',  uses:'Post-construction holdbacks and after-service items', flag:'BALANCE SHEET CODE — Manager approval required'},
   // ── BAD DEBT ──────────────────────────────────────────────────────────────
   {code:'7050-1000',name:'Bad Debt Expense',                           cat:'bd',  hst:'none',   uses:'Write-off of uncollectible tenant receivables', flag:'Manager approval required'},
@@ -994,11 +995,11 @@ function calcAlloc(){
   const hstIn=$c('f-hst-in').value;
   let split=getActiveSplit();if(!split)return;
 
-  // Balance sheet code 1850-1000: always 100% commercial to recover ITC
+  // Capital codes 1850-1000 and 1700-1300: always 100% commercial to recover ITC
   // regardless of property type or building split — resi portion is not applicable
   const activeGLCode=selCode||$c('sel-code')?.value||'';
-  if(activeGLCode==='1850-1000'){
-    split={resi:0,comm:100,condo:0,label:'100% Commercial (Balance Sheet — ITC Recovery)',note:'After Service / Post-Construction costs are posted 100% to the commercial pool to recover HST as ITC. No residential allocation applies to balance sheet items.'};
+  if(activeGLCode==='1850-1000'||activeGLCode==='1700-1300'){
+    split={resi:0,comm:100,condo:0,label:'100% Commercial (Capital — ITC Recovery)',note:'Capital improvement costs are posted 100% to the commercial pool to recover HST as ITC. Controller approval required before posting.'};
   }
 
   // Derive net and hst amounts
@@ -1049,8 +1050,8 @@ function calcAlloc(){
   tbody.innerHTML=rows.map(r=>{
     const activeCode=activeCodeForTable;
     let rowGL='—';
-    if(activeCode==='1850-1000'){
-      rowGL='1850-1000';
+    if(activeCode==='1850-1000'||activeCode==='1700-1300'){
+      rowGL=activeCode;
     } else if(activeCode){
       if(r.key==='comm'){
         rowGL=RESI_TO_COMM[activeCode]||(/^6[0-9]/.test(activeCode)?activeCode:'—');
@@ -1149,7 +1150,7 @@ SERVICE UNIT: ${unitCtx}
    • 901 College St: 100% residential, HST not recoverable.
 
 4. SPECIAL FLAGS — include in the flag field:
-   • Code 1850-1000 (After Service Post-Construction): ONLY use this code when the property is 1924 Eglinton Ave W — this is the only property currently in post-construction stabilization phase. For ALL other properties (772 Queen, 1133 Yonge, College St, 901 College), these properties are stabilized and capital items must NOT use 1850-1000. Instead suggest the most appropriate building improvement or R&M code and include this flag: "CAPITAL / BUILDING IMPROVEMENT — Property is stabilized. Do not use 1850-1000. Post via building improvement code — Controller approval required. Cost allocation is 100% commercial to recover HST as ITC."
+   • Code 1850-1000 (After Service Post-Construction): ONLY use this code when the property is 1924 Eglinton Ave W — this is the only property currently in post-construction stabilization phase. For ALL stabilized properties (772 Queen, 1133 Yonge, College St, 901 College), capital items must NOT use 1850-1000. Use 1700-1300 (Buildings – Improvements) instead, still 100% commercial for ITC recovery, Controller approval required. Include this flag: "CAPITAL CODE — Controller approval required. 100% commercial allocation to recover HST as ITC."
    • Code 7050-1000: "Manager approval required"
    • Any capital/replacement situation: "May be capital — confirm with Controller before posting as operating expense"
 
@@ -1162,7 +1163,7 @@ SERVICE UNIT: ${unitCtx}
      CRITICAL: When the description contains "install" or "we install" or "new installation" or "re/re" (which means remove and replace, i.e. full component swap), lead with 1850-1000 as the PRIMARY code. Include the R&M exterior code as the second suggestion with a note that it applies if the Controller determines this is a repair rather than a capital item.
      MANDATORY OVERRIDE: If ANY of these install/replacement keywords appear:
      – Property is 1924 Eglinton Ave W → lead with 1850-1000 (stabilization phase), 100% commercial, ITC recoverable.
-     – Any other property → do NOT use 1850-1000. Flag as capital/building improvement, suggest best-fit R&M code as secondary if Controller confirms it is a repair, and note: "100% commercial allocation to recover HST as ITC — Controller approval required."
+     – Any other property (772 Queen, 1133 Yonge, College St, 901 College) → these are stabilized properties. Do NOT use 1850-1000. Use 1700-1300 (Buildings – Improvements) as the primary suggestion with flag: "CAPITAL CODE — Controller approval required. 100% commercial allocation to recover HST as ITC."
    • "debris removal", "debris disposal", "waste removal", "garbage removal", "junk removal", "disposal of debris", "haul away", "clean out", "cleanout", "dump run", "bin rental", "dumpster", "skip bin", "rubbish removal", "trash removal" = waste/debris disposal → 7000-2045 resi or 6300-4000 comm (one-off); recurring contract → 7000-4050 resi SC or 6200-2500 comm SC
      CRITICAL: Do NOT use 7000-3110 (In-Suite Misc) or 7000-3130 (Extra Janitorial) for debris/waste disposal. Waste removal is a distinct category. Only use janitorial codes when the invoice is specifically for cleaning services (mopping, sweeping, general cleaning), never for hauling/disposal.
      MANDATORY OVERRIDE: If ANY waste/debris keyword appears anywhere in the description, you MUST return 7000-2045 (resi) or 6300-4000 (comm) as the primary code for a one-off job, or 7000-4050 / 6200-2500 for a recurring contract. Returning 7000-3110 or 7000-3130 for any disposal/hauling work is an error.
@@ -1281,9 +1282,9 @@ function buildPO(){
   const pid=$c('f-prop').value;
   let split=getActiveSplit();
 
-  // Balance sheet code 1850-1000: always 100% commercial to recover ITC
-  if(code==='1850-1000'){
-    split={resi:0,comm:100,condo:0,label:'100% Commercial (Balance Sheet — ITC Recovery)',note:'After Service / Post-Construction costs posted 100% commercial — HST fully recoverable as ITC.'};
+  // Capital codes 1850-1000 and 1700-1300: always 100% commercial to recover ITC
+  if(code==='1850-1000'||code==='1700-1300'){
+    split={resi:0,comm:100,condo:0,label:'100% Commercial (Capital — ITC Recovery)',note:'Capital improvement costs posted 100% commercial — HST fully recoverable as ITC. Controller approval required.'};
   }
 
   const total=parseFloat($c('f-amt').value)||0;
