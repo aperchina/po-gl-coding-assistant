@@ -984,15 +984,16 @@ function getActiveSplit(){
   if(overrideVal==='condo100'){
     return {resi:0,comm:0,condo:100,label:'100% Condo (Manual Override)',note:'Manual override applied — 100% condo pool. HST is ITC recoverable — post net amount, HST claimed as ITC.'};
   }
-  // Unit-specific repair overrides to 100% of that unit's pool
+  // Commercial tenant equipment override — runs regardless of serviceUnit detection
+  // Freezer/refrigeration work is always 100% commercial tenant equipment
+  const descForEquip=($c('f-desc').value+' '+$c('f-notes').value).toLowerCase();
+  const isCommTenantEquip=/freezer|refriger|temp.*sensor|sensor.*temp|walk.?in|cold room|cooler alarm|freezer alarm|temperature sensor|freezer sensor|freezer probe|temp probe/.test(descForEquip);
+  if(isCommTenantEquip){
+    return {resi:0,comm:100,condo:0,label:'100% Commercial (Tenant Equipment)',note:'Commercial tenant freezer/refrigeration equipment — 100% commercial pool. HST fully recoverable as ITC. Verify landlord vs tenant responsibility before posting.'};
+  }
+
+  // Unit-specific override — runs after equipment check
   if(invoiceServiceUnit){
-    // Commercial tenant equipment keywords override unit-specific residential pool
-    // Freezer/refrigeration/temp sensor work is always commercial regardless of detected unit
-    const descLower=($c('f-desc').value+' '+$c('f-notes').value).toLowerCase();
-    const isCommTenantEquip=/freezer|refriger|temp.*sensor|sensor.*temp|walk.?in|cold room|cooler alarm|freezer alarm|temperature sensor|freezer sensor|freezer probe|temp probe/.test(descLower);
-    if(isCommTenantEquip){
-      return {resi:0,comm:100,condo:0,label:'100% Commercial (Tenant Equipment)',note:'Commercial tenant freezer/refrigeration equipment — 100% commercial pool regardless of unit detection. HST fully recoverable as ITC. Verify landlord vs tenant responsibility before posting.'};
-    }
     if(invoiceUnitPool==='condo'){
       return {resi:0,comm:0,condo:100,label:'100% Condo (unit-specific)',note:`Repair to ${invoiceServiceUnit} — 100% condo pool. HST is ITC recoverable — post net amount, HST claimed as ITC. No resi/comm split.`};
     }
