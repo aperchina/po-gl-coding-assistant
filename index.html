@@ -1230,18 +1230,25 @@ Return 1-3 suggestions best-first. Set flag to a warning string when needed, nul
     const conf=d.confidence||'medium';
     $c('gl-conf').textContent=conf.charAt(0).toUpperCase()+conf.slice(1)+' Confidence';
     $c('gl-conf').className=`conf-badge conf-${conf}`;
-    $c('gl-lines').innerHTML=d.suggestions.map((s,i)=>`
-      <div class="gl-line ${i===0?'sel':''}" onclick="pickGL('${s.code}','${s.name.replace(/'/g,"\\'")}',this)">
+    $c('gl-lines').innerHTML=d.suggestions.map((s,i)=>{
+      // Always use canonical name from GL array — never trust model's name string
+      const canonicalGL=glByCode(s.code);
+      const displayName=canonicalGL?canonicalGL.name:s.name;
+      return `
+      <div class="gl-line ${i===0?'sel':''}" onclick="pickGL('${s.code}','${displayName.replace(/'/g,"\\'")}',this)">
         <span class="gl-chip">${s.code}</span>
         <div class="gl-info">
-          <div class="gl-name">${s.name}</div>
+          <div class="gl-name">${displayName}</div>
           <div class="gl-why">${s.reason}</div>
           ${s.flag?`<div class="gl-flag">⚠️ ${s.flag}</div>`:''}
         </div>
         <div class="radio-dot"></div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     $c('gl-note').textContent=d.reasoning||'';
-    selCode=d.suggestions[0].code;selName=d.suggestions[0].name;
+    selCode=d.suggestions[0].code;
+    const canonicalFirst=glByCode(selCode);
+    selName=canonicalFirst?canonicalFirst.name:d.suggestions[0].name;
     $c('sel-code').value=selCode;$c('sel-name').value=selName;
 
     // CONSISTENCY ENFORCEMENT: GL code series must match the active pool
@@ -1339,8 +1346,10 @@ Return 1-3 suggestions best-first. Set flag to a warning string when needed, nul
 function pickGL(code,name,el){
   document.querySelectorAll('.gl-line').forEach(l=>l.classList.remove('sel'));
   el.classList.add('sel');
-  selCode=code;selName=name;
-  $c('sel-code').value=code;$c('sel-name').value=name;
+  selCode=code;
+  const canonicalPick=glByCode(code);
+  selName=canonicalPick?canonicalPick.name:name;
+  $c('sel-code').value=code;$c('sel-name').value=selName;
   $c('po-btn').disabled=false;
   calcAlloc();
 }
