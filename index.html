@@ -984,6 +984,18 @@ function getActiveSplit(){
   if(overrideVal==='condo100'){
     return {resi:0,comm:0,condo:100,label:'100% Condo (Manual Override)',note:'Manual override applied — 100% condo pool. HST is ITC recoverable — post net amount, HST claimed as ITC.'};
   }
+  // 772 Queen St E — floor-based pool detection
+  // 2nd floor and above = residential; ground/1st floor = commercial
+  if($c('f-prop').value==='772queen'){
+    const descQ=($c('f-desc').value+' '+$c('f-notes').value).toLowerCase();
+    if(/2nd floor|second floor|3rd floor|third floor|4th floor|fourth floor|floor 2|floor 3|floor 4|upper floor/.test(descQ)){
+      return {resi:100,comm:0,condo:0,label:'100% Residential (Upper Floor — 772 Queen)',note:'Work on 2nd floor or above at 772 Queen St E — residential portion of building. 100% residential pool, HST inclusive non-recoverable.'};
+    }
+    if(/ground floor|1st floor|first floor|main floor|storefront|dollarama|bmo|lcbo|retail unit|commercial unit/.test(descQ)){
+      return {resi:0,comm:100,condo:0,label:'100% Commercial (Ground Floor — 772 Queen)',note:'Work on ground floor commercial space at 772 Queen St E. 100% commercial pool, HST fully recoverable as ITC.'};
+    }
+  }
+
   // Commercial tenant equipment override — runs regardless of serviceUnit detection
   // Freezer/refrigeration work is always 100% commercial tenant equipment
   const descForEquip=($c('f-desc').value+' '+$c('f-notes').value).toLowerCase();
@@ -1168,9 +1180,13 @@ SERVICE UNIT: ${unitCtx}
 
 3. PROPERTY ALLOCATIONS:
    • 772 Queen St E (mixed — resi 8,517 sf / comm 16,148 sf):
+       – FLOOR-BASED POOL DETECTION (highest priority after unit number):
+         "2nd floor", "second floor", "3rd floor", "third floor", "floor 2", "floor 3", or any upper floor reference = RESIDENTIAL → 100% resi, 7000-series codes, HST inclusive non-recoverable.
+         "ground floor", "1st floor", "first floor", "main floor", "storefront", "retail", "commercial unit", or tenant name (Dollarama, BMO, LCBO) = COMMERCIAL → 100% comm, 6100-series codes, HST ITC recoverable.
        – Unit/suite repair: ALWAYS 100% residential → use 7000-series resi code, HST inclusive non-recoverable. Exception: if the unit is explicitly a commercial tenant space (Dollarama, BMO, LCBO) → use 6100-series comm code.
-       – Fire/backflow systems (building-wide only): split 34.54% resi / 65.46% comm.
-       – All other building-wide work: specify which component (resi or comm) was served.
+       – Fire/backflow systems (building-wide only, no floor specified): split 34.54% resi / 65.46% comm.
+       – All other building-wide work with no floor signal: specify which component (resi or comm) was served.
+       EXAMPLES: "fire alarm 2nd floor stair" → 100% resi, 7000-3090. "electrical ground floor retail" → 100% comm, 6100-2000. "FACP trouble 2nd floor smoke" → 100% resi, 7000-3090.
    • 1133 Yonge St: 100% commercial, all HST fully recoverable as ITC.
    • College St 871–899 (mixed3 — resi 71,793 / comm 17,867 / condo 28,006 sf):
        – equalSplit — snow removal, electrical, plumbing, exterior/roof, pest, fire, water/sewer, insurance: condo 24.37% / resi 60.10% / comm 15.53%
