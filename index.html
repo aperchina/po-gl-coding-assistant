@@ -310,6 +310,17 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
             <select id="f-alloc" onchange="allocChanged()"></select>
           </div>
         </div>
+        <div class="frow c1" id="pool-override-row">
+          <div class="fg">
+            <label>Pool Override</label>
+            <select id="f-pool-override" onchange="calcAlloc()">
+              <option value="auto">Auto — use allocation schedule / address detection</option>
+              <option value="resi100">Override: 100% Residential (HST inclusive, non-recoverable)</option>
+              <option value="comm100">Override: 100% Commercial (HST ITC recoverable)</option>
+              <option value="condo100">Override: 100% Condo (HST ITC recoverable)</option>
+            </select>
+          </div>
+        </div>
         <div class="frow c1" id="unit-alloc-banner" style="display:none">
           <div style="background:#dcfce7;border:1px solid #86efac;border-radius:7px;padding:9px 13px;font-size:13px;color:#166534;width:100%">
             <strong id="unit-alloc-title">100% Residential — Unit-Specific</strong><br>
@@ -669,6 +680,7 @@ const RESI_TO_COMM={
   '7000-2040':'6300-3000','7000-2045':'6300-4000',
   '7000-1000':'6500-1000',
 };
+const COMM_TO_RESI=Object.fromEntries(Object.entries(RESI_TO_COMM).map(([r,c])=>[c,r]));
 function glByCode(c){return GL.find(g=>g.code===c)||null}
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -957,6 +969,17 @@ function hideAllocOut(){$c('alloc-empty').style.display='';$c('alloc-out').style
 
 function getActiveSplit(){
   const pid=$c('f-prop').value;if(!pid)return null;
+  // Manual pool override — user explicitly selected a pool
+  const overrideVal=$c('f-pool-override')?.value||'auto';
+  if(overrideVal==='resi100'){
+    return {resi:100,comm:0,condo:0,label:'100% Residential (Manual Override)',note:'Manual override applied — 100% residential pool. HST is a cost, non-recoverable. Applied when unit numbers, address, or work description confirms residential-only scope.'};
+  }
+  if(overrideVal==='comm100'){
+    return {resi:0,comm:100,condo:0,label:'100% Commercial (Manual Override)',note:'Manual override applied — 100% commercial pool. HST fully recoverable as ITC.'};
+  }
+  if(overrideVal==='condo100'){
+    return {resi:0,comm:0,condo:100,label:'100% Condo (Manual Override)',note:'Manual override applied — 100% condo pool. HST is ITC recoverable — post net amount, HST claimed as ITC.'};
+  }
   // Unit-specific repair overrides to 100% of that unit's pool
   if(invoiceServiceUnit){
     if(invoiceUnitPool==='condo'){
@@ -1056,9 +1079,11 @@ function calcAlloc(){
       rowGL=activeCode;
     } else if(activeCode){
       if(r.key==='comm'){
-        rowGL=RESI_TO_COMM[activeCode]||(/^6[0-9]/.test(activeCode)?activeCode:'—');
+        // Comm code selected → use directly; resi code → map to comm equivalent
+        rowGL=/^6[0-9]/.test(activeCode)?activeCode:(RESI_TO_COMM[activeCode]||'—');
       } else {
-        rowGL=activeCode;
+        // Resi/condo pool: resi code → use directly; comm code → reverse-map to resi equivalent
+        rowGL=/^6[0-9]/.test(activeCode)?(COMM_TO_RESI[activeCode]||activeCode):activeCode;
       }
     }
     return `<tr>
@@ -1243,6 +1268,15 @@ Return 1-3 suggestions best-first. Set flag to a warning string when needed, nul
       $c('gl-warn').innerHTML='';
     }
 
+    // Warn if primary suggestion is a comm code but property has a residential pool
+    const primaryIsComm=selCode&&/^6[0-9]/.test(selCode);
+    const propHasResi=pid&&PROPS[pid]&&PROPS[pid].resi>0;
+    if(primaryIsComm&&propHasResi){
+      const existingWarn=$c('gl-warn').innerHTML||'';
+      $c('gl-warn').innerHTML=`<div style="background:#fffbeb;border:1.5px solid #f59e0b;border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400e;margin-bottom:8px">⚠️ <strong>Code mismatch:</strong> The suggested GL code is a commercial code (${selCode}) but this property has a residential pool. The tool will automatically use the residential equivalent in the allocation table and PO. Verify the GL code is correct for the pool before posting.</div>`+existingWarn;
+      $c('gl-warn').style.display='';
+    }
+
     $c('gl-empty').style.display='none';$c('gl-out').style.display='';
     $c('po-btn').disabled=false;
     calcAlloc();
@@ -1333,14 +1367,18 @@ function buildPO(){
   const poolCalcs=pools.map(pool=>{
     let poolCode,poolCodeName;
     if(pool.type==='comm'){
-      const mapped=RESI_TO_COMM[code];
+      // Comm code selected → use directly; resi code → map to comm equivalent
+      const mapped=/^6[0-9]/.test(code)?code:RESI_TO_COMM[code];
       if(mapped){poolCode=mapped;poolCodeName=glByCode(mapped)?.name||mapped;}
-      else if(/^6[0-9]/.test(code)){poolCode=code;poolCodeName=name;}
       else{poolCode=code;poolCodeName=name+' (verify comm code)';}
     } else if(pool.type==='condo'){
-      poolCode=code;poolCodeName=name+' (Condo)';
+      // Resi code → use directly; comm code → reverse-map to resi equivalent
+      const resiCode=/^6[0-9]/.test(code)?(COMM_TO_RESI[code]||code):code;
+      poolCode=resiCode;poolCodeName=(glByCode(resiCode)?.name||name)+' (Condo)';
     } else {
-      poolCode=code;poolCodeName=name;
+      // Resi pool: resi code → use directly; comm code → reverse-map to resi equivalent
+      const resiCode=/^6[0-9]/.test(code)?(COMM_TO_RESI[code]||code):code;
+      poolCode=resiCode;poolCodeName=glByCode(resiCode)?.name||name;
     }
     const pct=pool.pct/100;
     const poolNet=parseFloat((netTotal*pct).toFixed(2));
@@ -1458,7 +1496,7 @@ function clearForm(){
   invoiceServiceUnit=invoiceUnitPool=null;
   $c('desc-flag-warn').style.display='none';
   ['f-vendor','f-inv','f-desc','f-amt','f-notes'].forEach(id=>$c(id).value='');
-  $c('f-prop').value='';$c('f-hst-in').value='yes';
+  $c('f-prop').value='';$c('f-hst-in').value='yes';$c('f-pool-override').value='auto';
   $c('f-po').value=genPO();$c('f-date').value=new Date().toISOString().slice(0,10);
   $c('alloc-row').style.display='none';$c('manual-split-row').style.display='none';
   $c('unit-alloc-banner').style.display='none';
