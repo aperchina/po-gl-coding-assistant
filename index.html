@@ -1268,8 +1268,10 @@ Return 1-3 suggestions best-first. Set flag to a warning string when needed, nul
           selName=glByCode(reverseMatch[0])?.name||reverseMatch[0];
           $c('sel-code').value=selCode;
           $c('sel-name').value=selName;
-          const firstLine=document.querySelector('.gl-line.sel .gl-chip');
-          if(firstLine) firstLine.textContent=selCode;
+          const firstChip=document.querySelector('.gl-line.sel .gl-chip');
+          if(firstChip) firstChip.textContent=selCode;
+          const firstNameEl=document.querySelector('.gl-line.sel .gl-name');
+          if(firstNameEl) firstNameEl.textContent=selName;
           const note=$c('gl-note');
           note.textContent='[Auto-corrected to resi code: allocation is 100% residential so GL code must be 7000-series] '+note.textContent;
         }
@@ -1281,8 +1283,10 @@ Return 1-3 suggestions best-first. Set flag to a warning string when needed, nul
           selName=glByCode(commEquiv)?.name||commEquiv;
           $c('sel-code').value=selCode;
           $c('sel-name').value=selName;
-          const firstLine=document.querySelector('.gl-line.sel .gl-chip');
-          if(firstLine) firstLine.textContent=selCode;
+          const firstChip=document.querySelector('.gl-line.sel .gl-chip');
+          if(firstChip) firstChip.textContent=selCode;
+          const firstNameEl=document.querySelector('.gl-line.sel .gl-name');
+          if(firstNameEl) firstNameEl.textContent=selName;
           const note=$c('gl-note');
           note.textContent='[Auto-corrected to comm code: allocation is 100% commercial so GL code must be 6100-series] '+note.textContent;
         }
