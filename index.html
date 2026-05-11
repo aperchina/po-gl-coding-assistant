@@ -240,6 +240,7 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
     </div>
   </div>
   <span class="hbadge">AI-Powered · Claude</span>
+  <button class="btn" style="background:rgba(255,255,255,0.12);color:#fff;border:1.5px solid rgba(255,255,255,0.25);font-size:12px;padding:5px 14px;margin-left:12px" onclick="clearAll()">✕ Clear All</button>
 </header>
 
 <div class="wrap">
@@ -260,7 +261,7 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
         <input type="file" id="file-input" accept="image/*,.pdf" onchange="fileSelected(this)"/>
         <div style="margin-top:12px" class="brow">
           <button class="btn btn-gold" onclick="scanInvoice()" id="scan-btn" disabled>✨ Scan with Claude</button>
-          <button class="btn btn-ghost" onclick="clearInvoice()">✕ Clear</button>
+          <button class="btn btn-ghost" onclick="clearAll()">✕ Clear All</button>
         </div>
         <div id="desc-flag-warn" style="display:none;margin-top:8px;background:#fef3c7;border:1px solid #fcd34d;border-left:3px solid #f59e0b;border-radius:7px;padding:9px 13px;font-size:12.5px;color:#92400e"></div>
       </div>
@@ -270,7 +271,7 @@ input[readonly]{background:#f7f8fa;color:var(--muted);cursor:default}
   <!-- PO Form -->
   <div>
     <div class="card">
-      <div class="card-h"><h2><span class="chip-icon">📋</span> Purchase Order Details</h2><button class="btn btn-ghost" style="font-size:12px;padding:5px 11px" onclick="clearForm()">Clear</button></div>
+      <div class="card-h"><h2><span class="chip-icon">📋</span> Purchase Order Details</h2><button class="btn btn-ghost" style="font-size:12px;padding:5px 11px" onclick="clearAll()">Clear All</button></div>
       <div class="card-b">
         <div class="frow c2">
           <div class="fg"><label>PO Number</label><input id="f-po" readonly/></div>
@@ -1595,6 +1596,52 @@ function clearForm(){
   $c('alloc-empty').style.display='';$c('alloc-out').style.display='none';
   $c('po-preview').style.display='none';$c('po-empty').style.display='';
   $c('po-btn').disabled=true;selCode=selName=null;
+}
+
+function clearAll(){
+  // Clear invoice upload
+  clearInvoice();
+
+  // Reset all form fields
+  invoiceServiceUnit=invoiceUnitPool=null;
+  $c('desc-flag-warn').style.display='none';
+  ['f-vendor','f-inv','f-desc','f-amt','f-notes'].forEach(id=>$c(id).value='');
+  $c('f-prop').value='';
+  $c('f-hst-in').value='yes';
+  $c('f-po').value=genPO();
+  $c('f-date').value=new Date().toISOString().slice(0,10);
+  if($c('f-pool-override')) $c('f-pool-override').value='auto';
+
+  // Hide allocation and GL rows
+  $c('alloc-row').style.display='none';
+  $c('manual-split-row').style.display='none';
+  $c('unit-alloc-banner').style.display='none';
+
+  // Reset GL suggestion panel
+  $c('gl-empty').style.display='';
+  $c('gl-empty').innerHTML='<div class="empty-ico">🔍</div>Fill in the description and click <strong>Suggest GL Code</strong>';
+  $c('gl-out').style.display='none';
+  $c('gl-warn').style.display='none';
+  $c('gl-warn').innerHTML='';
+
+  // Reset cost allocation panel
+  $c('alloc-empty').style.display='';
+  $c('alloc-out').style.display='none';
+
+  // Reset PO preview
+  $c('po-preview').style.display='none';
+  $c('po-empty').style.display='';
+  $c('po-btn').disabled=true;
+
+  // Reset GL selection
+  selCode=selName=null;
+  if($c('sel-code')) $c('sel-code').value='';
+  if($c('sel-name')) $c('sel-name').value='';
+
+  // Reset scan status
+  $c('scan-status').innerHTML='';
+
+  toast('All fields cleared');
 }
 </script>
 </body>
