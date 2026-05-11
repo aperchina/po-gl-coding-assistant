@@ -781,6 +781,10 @@ BILLING ADDRESS — ALWAYS IGNORE FOR UNIT AND PROPERTY:
 SERVICE UNIT — LINE ITEMS ONLY:
 The service unit is found inside the LINE ITEMS section: description fields, reference notes, work order details, or address fields within individual line items. Look for patterns like "Unit 701", "Apt 404", "Suite 12", "701-7 Fairbank", "875 College St Unit 12". Do not use the top-level billing/remit-to block.
 IMPORTANT — "7 Fairbank" or "7 Fairbank Ave" alone is a BUILDING ADDRESS (1924 Eglinton Ave W property), NOT a unit number. Only treat it as unit-specific when a unit/suite/apt number precedes it — e.g. "701-7 Fairbank", "Unit 701, 7 Fairbank Ave". If the invoice says only "7 Fairbank Ave" with no unit number, set serviceUnit to null.
+BUILDING ADDRESSES ARE NEVER SERVICE UNITS:
+"871-899 College", "871-899 College St", "871 College", "875 College", "883 College", "891 College", "895 College", "897 College", "899 College" are ALL building/property addresses for the College St 871-899 property — never treat any of these as a serviceUnit. Set serviceUnit to null.
+Similarly, "772 Queen", "772 Queen St E", "1133 Yonge", "1924 Eglinton", "1928 Eglinton", "901 College" are building addresses — never serviceUnit.
+A valid serviceUnit must be a specific suite or unit within a building, e.g. "Unit 401", "Suite 12", "401-7 Fairbank", "615-875 College". A range like "871-899" is always a street address range, never a unit number.
 ADDRESS POOL HINT for Eglinton: if the work location in the line items says "7 Fairbank" or "Fairbank" without a unit number, set detectedProperty to "eglinton" and note in workDescription that the work was performed on the residential side (Fairbank address). If the work location says "1924 Eglinton" or "1928 Eglinton" or names a commercial tenant like KFC, note it is the commercial side.
 
 PO REFERENCE — INTERNAL REFERENCE FIELD:
@@ -982,6 +986,13 @@ function getActiveSplit(){
   }
   // Unit-specific repair overrides to 100% of that unit's pool
   if(invoiceServiceUnit){
+    // Commercial tenant equipment keywords override unit-specific residential pool
+    // Freezer/refrigeration/temp sensor work is always commercial regardless of detected unit
+    const descLower=($c('f-desc').value+' '+$c('f-notes').value).toLowerCase();
+    const isCommTenantEquip=/freezer|refriger|temp.*sensor|sensor.*temp|walk.?in|cold room|cooler alarm|freezer alarm|temperature sensor|freezer sensor|freezer probe|temp probe/.test(descLower);
+    if(isCommTenantEquip){
+      return {resi:0,comm:100,condo:0,label:'100% Commercial (Tenant Equipment)',note:'Commercial tenant freezer/refrigeration equipment — 100% commercial pool regardless of unit detection. HST fully recoverable as ITC. Verify landlord vs tenant responsibility before posting.'};
+    }
     if(invoiceUnitPool==='condo'){
       return {resi:0,comm:0,condo:100,label:'100% Condo (unit-specific)',note:`Repair to ${invoiceServiceUnit} — 100% condo pool. HST is ITC recoverable — post net amount, HST claimed as ITC. No resi/comm split.`};
     }
