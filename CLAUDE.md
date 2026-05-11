@@ -48,10 +48,11 @@ One large file containing HTML, CSS, and JavaScript. No framework, no bundler. K
 - **JS functions** (lines 680–1380):
   - `scanInvoice()` — sends base64 file to Claude; parses JSON response into form fields; sets `invoiceServiceUnit` / `invoiceUnitPool` globals; auto-selects `parking` allocation at College St when description contains garage door keywords; auto-triggers `suggestGL()`. Scan prompt contains an explicit `BUILDING ADDRESSES ARE NEVER SERVICE UNITS` block listing all known building addresses (College St street numbers, Queen/Yonge/Eglinton/901 College) so the model never sets them as `serviceUnit`.
   - `suggestGL()` — sends description + property context + notes field (`LOCATION/NOTES`) to Claude; GL panel renders with canonical names from `glByCode()` (never from the model's JSON); after setting `selCode`, runs GL series consistency enforcement (auto-swaps comm→resi or resi→comm based on active pool, updating chip + name div); keyword-matches description for warning flags; shows comm-code mismatch banner if pool has resi component; calls `calcAlloc()` last
-  - `getActiveSplit()` — single source of truth for resi/comm/condo split percentages; used by both `calcAlloc()` and `buildPO()`. Priority order: (1) Pool Override dropdown (`f-pool-override`), (2) commercial tenant equipment keywords (inside `invoiceServiceUnit` block), (3) unit-specific invoice condo/resi branch, (4) Eglinton unit-number detection, (5) Eglinton address-based detection from description field only, (6) dropdown/manual split
+  - `getActiveSplit()` — single source of truth for resi/comm/condo split percentages; used by both `calcAlloc()` and `buildPO()`. Priority order: (1) Pool Override dropdown (`f-pool-override`), (2) 772 Queen floor-based detection (desc+notes), (3) commercial tenant equipment keywords (desc+notes, independent of serviceUnit), (4) unit-specific invoice condo/resi branch, (5) Eglinton unit-number detection, (6) Eglinton address-based detection from description field only, (7) dropdown/manual split
   - `calcAlloc()` — recalculates the allocation table whenever amount, property, alloc schedule, HST toggle, manual split, or notes field changes; reads `activeCodeForTable` (hoisted outside `.map()`) to fill the GL Code column per pool; bidirectional GL code mapping (comm code in resi row → `COMM_TO_RESI`; resi code in comm row → `RESI_TO_COMM`); overrides split to 100% commercial when `1850-1000` or `1700-1300` is selected
   - `pickGL(code, name, el)` — called when user clicks a GL suggestion row; resolves `selName` via `glByCode()` (canonical, never from the onclick attribute string); sets `selCode` and calls `calcAlloc()` to refresh the GL code column
   - `buildPO()` — renders the printable PO preview from current form state; bidirectional pool-code assignment (comm pool: uses comm code directly or maps resi→comm; resi/condo pools: uses resi code directly or reverse-maps comm→resi via `COMM_TO_RESI`); overrides split to 100% commercial when `1850-1000` or `1700-1300` is selected
+  - `clearAll()` — resets every panel in one call: `clearInvoice()`, all form inputs, pool-override dropdown, alloc/GL/PO panel visibility, `selCode`/`selName` globals, and scan status. Called by the header "✕ Clear All" button, the invoice card "✕ Clear All" button, and the PO form "Clear All" button.
   - `callClaude(body)` — thin fetch wrapper to `/api/claude`
 
 ### `api/claude.js` — Vercel serverless proxy
@@ -66,7 +67,11 @@ Accepts POST, transforms any `{type:"image", media_type:"application/pdf"}` bloc
 - `mixed3` (College St): three-way split — resi / comm / condo; each has named allocation schedules (equalSplit, resiWeighted, hvac, parking, hallway, amenityInternet, propertyTax)
 
 **772 Queen St E — allocation rule:**
-This property has a `tenants` array (`Dollarama`, `BMO`, `LCBO`) and `autoSplitCodes` flag. Only fire system and backflow work uses the sq-ft auto split (34.54% resi / 65.46% comm). All other work defaults to manual split — the user specifies the resi/comm % based on which component of the building was served. Unit/suite repairs default to 100% residential unless the unit is explicitly a named commercial tenant space.
+This property has a `tenants` array (`Dollarama`, `BMO`, `LCBO`) and `autoSplitCodes` flag. Pool detection priority for this property:
+1. **Floor-based signal** (desc + notes) — `2nd floor`, `second floor`, `3rd floor`, `floor 2/3/4`, `upper floor` → 100% residential; `ground floor`, `1st floor`, `first floor`, `main floor`, `storefront`, `dollarama`, `bmo`, `lcbo`, `retail unit`, `commercial unit` → 100% commercial
+2. **Unit/suite repair** — always 100% residential unless explicitly a named commercial tenant space
+3. **Fire/backflow building-wide** (no floor signal) — auto split 34.54% resi / 65.46% comm
+4. **All other building-wide work with no floor signal** — manual split; user specifies resi/comm %
 
 **Condo pool HST (College St):**
 Condo is NOT treated like residential. Condo costs are recovered through condo fees, so HST is ITC recoverable — same treatment as commercial: post net amount, HST shows as "+ ITC" in green. In `calcAlloc()` the condo pool uses `hstType:'condo'`, which falls into the ITC branch (not the resi/inclusive-cost branch).
@@ -83,7 +88,7 @@ Condo is NOT treated like residential. Condo costs are recovered through condo f
 - Building addresses (`871-899 College`, `772 Queen`, `1133 Yonge`, `1924/1928 Eglinton`, `901 College`) are explicitly excluded from `serviceUnit` in the scan prompt — a street address range like `871-899` is never a unit number
 
 **Commercial tenant equipment override:**
-Inside the `invoiceServiceUnit` block in `getActiveSplit()`, freezer/refrigeration/temperature sensor keywords are checked first. If matched, the function returns **100% commercial** regardless of the detected unit pool — commercial tenant refrigeration equipment is always the comm pool, HST ITC recoverable. Keywords: `freezer`, `refriger`, `temp.*sensor`, `sensor.*temp`, `walk.?in`, `cold room`, `cooler alarm`, `freezer alarm`, `temperature sensor`, `freezer sensor`, `freezer probe`, `temp probe`. The reasoning note tells the user to verify landlord vs tenant responsibility before posting.
+In `getActiveSplit()`, freezer/refrigeration/temperature sensor keywords are checked **outside and before** the `invoiceServiceUnit` block — so the override fires even when no service unit is detected (e.g. when the scan correctly leaves `serviceUnit` null for a building-address invoice). Returns 100% commercial, HST ITC recoverable. Keywords: `freezer`, `refriger`, `temp.*sensor`, `sensor.*temp`, `walk.?in`, `cold room`, `cooler alarm`, `freezer alarm`, `temperature sensor`, `freezer sensor`, `freezer probe`, `temp probe`. The reasoning note tells the user to verify landlord vs tenant responsibility before posting.
 
 **GL code series convention:**
 - `7000-3xxx` = residential R&M
