@@ -64,6 +64,9 @@ Accepts POST, transforms any `{type:"image", media_type:"application/pdf"}` bloc
 - `mixed` (772 Queen, Eglinton): split by sq footage; resi portion = gross, comm portion = net + ITC
 - `mixed3` (College St): three-way split — resi / comm / condo; each has named allocation schedules (equalSplit, resiWeighted, hvac, parking, hallway, amenityInternet, propertyTax)
 
+**772 Queen St E — allocation rule:**
+This property has a `tenants` array (`Dollarama`, `BMO`, `LCBO`) and `autoSplitCodes` flag. Only fire system and backflow work uses the sq-ft auto split (34.54% resi / 65.46% comm). All other work defaults to manual split — the user specifies the resi/comm % based on which component of the building was served. Unit/suite repairs default to 100% residential unless the unit is explicitly a named commercial tenant space.
+
 **Condo pool HST (College St):**
 Condo is NOT treated like residential. Condo costs are recovered through condo fees, so HST is ITC recoverable — same treatment as commercial: post net amount, HST shows as "+ ITC" in green. In `calcAlloc()` the condo pool uses `hstType:'condo'`, which falls into the ITC branch (not the resi/inclusive-cost branch).
 
@@ -83,7 +86,9 @@ Condo is NOT treated like residential. Condo costs are recovered through condo f
 - `6100-xxxx` = commercial R&M
 - `6200-xxxx` = commercial service contracts
 - `6300-xxxx` = commercial utilities
-- `1850-1000` = balance sheet (post-construction holdbacks) — requires manager approval
+- `6500-xxxx` = commercial property tax
+- `1700-1300` = Buildings – Improvements (capital items for stabilized properties) — requires Controller approval
+- `1850-1000` = After Service Post-Construction (balance sheet — post-construction holdbacks for Eglinton stabilization phase only) — requires manager approval
 
 **Per-pool GL codes on split invoices:**
 When an invoice is split across pools, each pool gets its own GL code — not the same code for all lines. `RESI_TO_COMM` maps the selected resi code to its comm equivalent. In both `buildPO()` line items and the `calcAlloc()` GL Code column:
@@ -97,7 +102,7 @@ The GL code column in `calcAlloc()` is populated by `suggestGL()` calling `calcA
 Any work involving garage doors, overhead doors, door operators, garage motors, or parking level doors must use the `parking` allocation schedule (condo 64.29% / resi 31.72% / comm 3.99%) — regardless of whether the vendor labels it "commercial service call". The physical asset determines the schedule, not the vendor billing type. Keywords that trigger auto-selection on scan: `garage door|overhead door|parking door|garage motor|door operator|tnr door|hormann door|parking level`. GL codes: resi/condo → `7000-3085`, comm → `6100-2600`.
 
 **Waste / debris removal GL mapping:**
-Keywords "debris removal", "debris disposal", "waste removal", "garbage removal", "junk removal", "disposal of debris", "haul away", "clean out" map to:
+Keywords "debris removal", "debris disposal", "waste removal", "garbage removal", "junk removal", "disposal of debris", "haul away", "clean out", "cleanout", "dump run", "bin rental", "dumpster", "skip bin", "rubbish removal", "trash removal" map to:
 - One-off: `7000-2045` resi / `6300-4000` comm
 - Recurring contract: `7000-4050` resi SC / `6200-2500` comm SC
 
@@ -106,11 +111,15 @@ Do NOT use `7000-3110` (In-Suite Misc) or `7000-3130` (Extra Janitorial) for dis
 **Graffiti / vandalism GL mapping:**
 Graffiti is always an exterior building surface issue. Keywords "graffiti", "graffiti removal", "remove graffiti", "paint over graffiti", "vandalism repair", "graffiti cleanup", "remove spray paint", "spray paint on wall" map to Exterior/Roof codes: `7000-3050` resi / `6100-2200` comm. Never `7000-3110` (In-Suite Misc). The prompt includes a MANDATORY OVERRIDE so the model cannot return any other code when a graffiti keyword is present.
 
-**Install / new installation / re-re → 1850-1000 (Balance Sheet):**
-When the description contains "install", "new installation", "we install", "installed", "re/re" (remove and replace), "flash install", "flashing install", or "metal flashing" + "install", the primary suggestion must be `1850-1000` (After Service Post-Construction / Balance Sheet) with a manager approval flag. The R&M exterior code (`7000-3050` / `6100-2200`) is offered as a secondary suggestion for cases where the Controller determines it is a repair rather than a capital item.
+**Install / new installation / re-re → capital code (property-dependent):**
+When the description contains "install", "new installation", "we install", "installed", "re/re" (remove and replace), "flash install", "flashing install", or "metal flashing" + "install", the primary suggestion must be a capital code with a manager/Controller approval flag. Which capital code depends on the property:
+- **1924 Eglinton Ave W** (in post-construction stabilization phase) → `1850-1000` (After Service Post-Construction / Balance Sheet)
+- **All other stabilized properties** (772 Queen, 1133 Yonge, College St, 901 College) → `1700-1300` (Buildings – Improvements)
 
-**1850-1000 balance sheet override:**
-When `1850-1000` is the selected GL code, both `calcAlloc()` and `buildPO()` override the split to **100% commercial** regardless of property type — balance sheet items are posted to the commercial pool to recover the full HST as ITC. This override is applied immediately after `getActiveSplit()` returns. The GL Code column in `calcAlloc()` reads `activeCodeForTable` (hoisted before `.map()`) so `1850-1000` renders correctly in the comm pool row instead of falling through to `RESI_TO_COMM` and showing a dash.
+The R&M exterior code (`7000-3050` / `6100-2200`) is always offered as a secondary suggestion for cases where the Controller determines it is a repair rather than a capital item.
+
+**Capital code (1850-1000 / 1700-1300) 100% commercial override:**
+When `1850-1000` or `1700-1300` is the selected GL code, both `calcAlloc()` and `buildPO()` override the split to **100% commercial** regardless of property type — capital items are posted to the commercial pool to recover the full HST as ITC. This override is applied immediately after `getActiveSplit()` returns. The GL Code column in `calcAlloc()` reads `activeCodeForTable` (hoisted before `.map()`) so these codes render correctly in the comm pool row instead of falling through to `RESI_TO_COMM` and showing a dash.
 
 **Eglinton (1924 Eglinton Ave W) — address-based pool detection:**
 This property has two sides with distinct pool rules. `getActiveSplit()` checks the **description field only** (not notes — the Yardi comment always contains the property address and would cause false positives) for these signals:
@@ -124,15 +133,15 @@ This property has two sides with distinct pool rules. `getActiveSplit()` checks 
 `buildPO()` uses a two-pass approach: first compute all pool amounts with `lineTotal = poolNet + poolHst` (gross) for every pool including comm and condo, then apply a rounding correction to the largest pool so the sum of all line totals equals the entered invoice total exactly. Comm and condo rows show a "GL post: $X.XX net + ITC" sub-note under the total so the posting instruction is clear. Prior to this fix the PO total was understated because comm/condo rows used `lineTotal = poolNet` (net only).
 
 **Warning flags in GL panel:**
-Client-side regex on description triggers amber banners at the top of the GL suggestion panel (above codes, non-blocking):
-- After Service / Post-Construction: `deficien|warranty|commissioning|new construction|builder|tarion|touch.?up after|post.?construct|handover`
-- Building Improvement / Capital: `replace entire|new installation|full replacement|upgrade|new boiler|new elevator|new roof|new windows|new entry system|new hvac|capital|major renovation|gut renovation`
+Client-side regex on description (+ vendor name) triggers amber banners at the top of the GL suggestion panel (above codes, non-blocking):
+- After Service / Post-Construction: `deficien|warranty|warrant(y|ies)|commission(ing|ed)|new construction|builder|tarion|touch.?up after|post.?construct|handover|hand.over`
+- Building Improvement / Capital: `replace entire|new installation|full replacement|full.?replace|upgrade|new boiler|new elevator|new roof|new windows|new entry system|new hvac|new h\.?v\.?a\.?c|capital|major renovation|gut renovation`
 
 **PO print:**
 Print button calls `window.print()`. CSS hides everything except `#po-card`. The `no-print` class suppresses elements in print view. `print-color-adjust:exact` preserves the dark header background.
 
 **History:**
-Saved POs are stored in `localStorage` under key `rcpo-hist` as a JSON array. Max 50 entries, newest first.
+Saved POs are stored in `localStorage` under key `rcpo-hist` as a JSON array. Max 60 entries, newest first.
 
 ## Adding a new property
 
