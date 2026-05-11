@@ -988,12 +988,18 @@ function getActiveSplit(){
     return {resi:100,comm:0,condo:0,label:'100% Residential (unit-specific)',note:`Repair to ${invoiceServiceUnit} — 100% residential, HST inclusive (non-recoverable). No commercial split.`};
   }
   // Eglinton address-based pool detection
-  // "7 Fairbank" / "Fairbank" in desc or notes = 100% residential side
-  // "1924 Eglinton" / "1928 Eglinton" / tenant name in desc or notes = 100% commercial side
+  // Unit numbers are the strongest signal — always residential at Eglinton
+  // "7 Fairbank" / "Fairbank" in desc = 100% residential side
+  // "1924 Eglinton" / "1928 Eglinton" / tenant name in desc = 100% commercial side
   if(pid==='eglinton'){
     // Only check the description field — NOT notes — to avoid false positives
     // from the Yardi comment which always contains the property address
     const descOnly=$c('f-desc').value.toLowerCase();
+    // Unit numbers override any street address — residential units at 7 Fairbank are
+    // numbered (e.g. 702, 703); the KFC commercial space has no suite/unit numbers
+    if(/\b(unit\s*)?\d{3}[/-]\d{3}\b|\b(unit\s*)\d{3}\b|suite\s*\d{3}|\b[1-9]\d{2}\/\d{3}\b/.test(descOnly)){
+      return {resi:100,comm:0,condo:0,label:'100% Residential (Unit Numbers Detected)',note:'Residential unit numbers identified in work description — 100% residential pool regardless of street address. HST inclusive, non-recoverable.'};
+    }
     if(/7 fairbank|fairbank/.test(descOnly)){
       return {resi:100,comm:0,condo:0,label:'100% Residential (7 Fairbank — residential side)',note:'Work description references 7 Fairbank Ave — residential side of building. 100% residential pool, HST inclusive non-recoverable.'};
     }
@@ -1167,13 +1173,14 @@ SERVICE UNIT: ${unitCtx}
        CRITICAL: snow removal → equalSplit; landscaping → resiWeighted; garage door/overhead door/door operator → parking — these use DIFFERENT allocation keys, never swap them
    • 1924 Eglinton Ave W (mixed — resi 19,071 sf / comm 2,310 sf): standard 80% resi / 20% comm. Janitorial only: 90% resi / 10% comm.
      ADDRESS-BASED POOL DETECTION — read the invoice description/location carefully:
+     UNIT NUMBER OVERRIDE (highest priority for Eglinton): If the description contains residential unit numbers in the format "702", "703", "702/703", "Unit 702", "suite 401" etc., this is ALWAYS 100% residential — use 7000-series resi codes, HST inclusive non-recoverable. Unit numbers override any street address signal including "1928 Eglinton". The commercial space at 1924 Eglinton is KFC ground floor retail — it does not have suite/unit numbers.
      – "7 Fairbank", "7 Fairbank Ave", "Fairbank" alone in the work description = residential side of the building → 100% residential pool, use 7000-series resi codes, HST inclusive non-recoverable.
      – A unit number at Fairbank (e.g. "Unit 701, 7 Fairbank", "701-7 Fairbank") = specific residential unit → 100% residential, same treatment.
      – "1924 Eglinton", "1928 Eglinton", "Eglinton Ave" in the work description = commercial side → 100% commercial pool, use 6100/6200/6300-series comm codes, HST fully recoverable as ITC.
      – Tenant named directly (e.g. "KFC", "KFC unit", "ground floor retail") = 100% commercial.
      – No location signal in description = apply standard 80% resi / 20% comm building-wide split.
-     EXAMPLES: "clean exterior windows at 7 Fairbank" → 100% resi. "repair RTU at 1928 Eglinton" → 100% comm. "replace faucet Unit 701, 7 Fairbank Ave" → 100% resi unit-specific. "KFC grease trap" → 100% comm.
-     IMPORTANT: Also check the LOCATION/NOTES field above for address clues — the scan may have placed the service location there rather than in the description. If LOCATION/NOTES contains "7 Fairbank" or "Fairbank", apply the residential-side rule. If it contains "1924 Eglinton" or "1928 Eglinton" or a tenant name, apply the commercial-side rule.
+     EXAMPLES: "clean exterior windows at 7 Fairbank" → 100% resi. "repair RTU at 1928 Eglinton" → 100% comm. "replace faucet Unit 701, 7 Fairbank Ave" → 100% resi unit-specific. "KFC grease trap" → 100% comm. "replace faucet units 702/703" → 100% resi (unit number override). "702 replace faucet, 1928 Eglinton" → 100% resi (unit number takes priority over street address).
+     IMPORTANT: Also check the LOCATION/NOTES field above for address clues — the scan may have placed the service location there rather than in the description. If LOCATION/NOTES contains "7 Fairbank" or "Fairbank", apply the residential-side rule. If it contains "1924 Eglinton" or "1928 Eglinton" or a tenant name, apply the commercial-side rule. But if LOCATION/NOTES contains a unit number, apply the unit number override (100% resi) regardless of any address.
    • 901 College St: 100% residential, HST not recoverable.
 
 4. SPECIAL FLAGS — include in the flag field:
