@@ -889,6 +889,11 @@ Return null for any field not visible. Do not include text outside the JSON.`;
         $c('f-alloc').value='parking';
         allocChanged();
       }
+      // Auto-select amenityBBQ allocation for College St rooftop / BBQ / amenity work
+      if($c('f-prop').value==='college' && /barbeque|barbecue|\bbbq\b|amenity bbq|rooftop amenity|amenity room|amenity terrace|rooftop terrace|bbq cleaning|barbeque cleaning/i.test(($c('f-desc').value||'')+' '+($c('f-notes').value||''))){
+        $c('f-alloc').value='amenityBBQ';
+        allocChanged();
+      }
       const propLabel=PROPS[d.detectedProperty].label;
       $c('scan-status').innerHTML=`<span class="scan-pill done">✓ Scanned — ${propLabel} — confirm or change</span>`;
       toast(`Property auto-detected: ${propLabel} — confirm or change`,'ok');
@@ -1110,10 +1115,12 @@ function calcAlloc(){
     if(activeCode==='1850-1000'||activeCode==='1700-1300'){
       rowGL=activeCode;
     } else if(activeCode){
-      if(r.key==='comm'||r.key==='condo'){
-        // Comm and condo pools both use comm GL code for ITC recovery
-        // Comm code → use directly; resi code → map to comm equivalent
+      if(r.key==='comm'){
+        // Comm pool: comm code → use directly; resi code → map to comm equivalent
         rowGL=/^6[0-9]/.test(activeCode)?activeCode:(RESI_TO_COMM[activeCode]||'—');
+      } else if(r.key==='condo'){
+        // Condo pool: same ITC treatment as comm; fallback to activeCode if no mapping
+        rowGL=/^6[0-9]/.test(activeCode)?activeCode:(RESI_TO_COMM[activeCode]||activeCode);
       } else {
         // Resi pool: resi code → use directly; comm code → reverse-map to resi equivalent
         rowGL=/^6[0-9]/.test(activeCode)?(COMM_TO_RESI[activeCode]||activeCode):activeCode;
