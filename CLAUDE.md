@@ -64,7 +64,7 @@ Accepts POST, transforms any `{type:"image", media_type:"application/pdf"}` bloc
 - `residential`: HST is a cost — post gross amount, no ITC
 - `commercial` (1133 Yonge): HST fully recoverable as ITC — post net
 - `mixed` (772 Queen, Eglinton): split by sq footage; resi portion = gross, comm portion = net + ITC
-- `mixed3` (College St): three-way split — resi / comm / condo; each has named allocation schedules (equalSplit, resiWeighted, hvac, parking, hallway, amenityInternet, propertyTax)
+- `mixed3` (College St): three-way split — resi / comm / condo; each has named allocation schedules (equalSplit, resiWeighted, hvac, parking, hallway, amenityBBQ, amenityInternet, propertyTax)
 
 **772 Queen St E — allocation rule:**
 This property has a `tenants` array (`Dollarama`, `BMO`, `LCBO`) and `autoSplitCodes` flag. Pool detection priority for this property:
@@ -101,15 +101,20 @@ In `getActiveSplit()`, freezer/refrigeration/temperature sensor keywords are che
 - `1850-1000` = After Service Post-Construction (balance sheet — post-construction holdbacks for Eglinton stabilization phase only) — requires manager approval
 
 **Per-pool GL codes on split invoices:**
-When an invoice is split across pools, each pool gets its own GL code. Mapping is **bidirectional** — works correctly whether a resi or comm code was selected:
-- Comm pool: if selected code is already a comm (6xxx) code → use directly; if resi code → `RESI_TO_COMM[selectedCode]`
-- Resi pool: if selected code is a resi (7000) code → use directly; if comm code → `COMM_TO_RESI[selectedCode]`
-- Condo pool: same as resi pool logic, with `(Condo)` appended to the name
+When an invoice is split across pools, each pool gets its own GL code. Condo is treated like commercial (ITC recovery), not like residential:
+- Comm pool: comm (6xxx) code → use directly; resi code → `RESI_TO_COMM[selectedCode]`
+- Condo pool: same as comm pool — uses comm equivalent via `RESI_TO_COMM`; label shows `(Condo — ITC)` in `buildPO()`
+- Resi pool: resi (7000) code → use directly; comm code → `COMM_TO_RESI[selectedCode]`
 
-This means the user can select either a resi or comm code from the GL panel and the allocation table / PO will always display the correct series per pool. The GL code column in `calcAlloc()` is populated by `suggestGL()` calling `calcAlloc()` after it resolves, and by `pickGL()` doing the same.
+This means the user can select either a resi or comm code from the GL panel and all three pools will display the correct series. The GL code column in `calcAlloc()` is populated by `suggestGL()` calling `calcAlloc()` after it resolves, and by `pickGL()` doing the same.
 
 **Garage door / parking allocation at College St:**
 Any work involving garage doors, overhead doors, door operators, garage motors, or parking level doors must use the `parking` allocation schedule (condo 64.29% / resi 31.72% / comm 3.99%) — regardless of whether the vendor labels it "commercial service call". The physical asset determines the schedule, not the vendor billing type. Keywords that trigger auto-selection on scan: `garage door|overhead door|parking door|garage motor|door operator|tnr door|hormann door|parking level`. GL codes: resi/condo → `7000-3085`, comm → `6100-2600`.
+
+**College St amenity / BBQ / rooftop allocation:**
+BBQ cleaning, rooftop terrace, amenity room, gym, party room, and amenity space maintenance use the `amenityBBQ` allocation schedule: **condo 20% / resi 80% / comm 0%**. Commercial tenants at College St have no access to residential/condo amenity spaces — the commercial pool is never included. GL code: `7000-3120` (Resi R&M – Amenity Expenses) for the resi pool. This rule is enforced via a MANDATORY CRITICAL note in the GL suggestion prompt's WORK TYPE HINTS section and as a named allocation schedule in `PROPS`.
+
+Keywords that trigger this rule: "barbeque cleaning", "bbq cleaning", "gas barbeque", "rooftop amenity", "amenity bbq", "bbq maintenance", "barbecue cleaning", "rooftop bbq", "terrace cleaning", "amenity terrace".
 
 **Waste / debris removal GL mapping:**
 Keywords "debris removal", "debris disposal", "waste removal", "garbage removal", "junk removal", "disposal of debris", "haul away", "clean out", "cleanout", "dump run", "bin rental", "dumpster", "skip bin", "rubbish removal", "trash removal" map to:
