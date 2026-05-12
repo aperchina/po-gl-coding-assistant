@@ -1116,14 +1116,18 @@ function calcAlloc(){
       rowGL=activeCode;
     } else if(activeCode){
       if(r.key==='comm'){
-        // Comm pool: comm code → use directly; resi code → map to comm equivalent
-        rowGL=/^6[0-9]/.test(activeCode)?activeCode:(RESI_TO_COMM[activeCode]||'—');
+        rowGL=/^6[0-9]/.test(activeCode)?activeCode:(RESI_TO_COMM[activeCode]||activeCode);
       } else if(r.key==='condo'){
-        // Condo pool: same ITC treatment as comm; fallback to activeCode if no mapping
+        // Condo uses comm equivalent for ITC recovery
         rowGL=/^6[0-9]/.test(activeCode)?activeCode:(RESI_TO_COMM[activeCode]||activeCode);
       } else {
-        // Resi pool: resi code → use directly; comm code → reverse-map to resi equivalent
-        rowGL=/^6[0-9]/.test(activeCode)?(COMM_TO_RESI[activeCode]||activeCode):activeCode;
+        // Resi — if comm code was selected, reverse map to resi
+        if(/^6100-/.test(activeCode)){
+          const reverseMatch=Object.entries(RESI_TO_COMM).find(([resi,comm])=>comm===activeCode);
+          rowGL=reverseMatch?reverseMatch[0]:activeCode;
+        } else {
+          rowGL=activeCode;
+        }
       }
     }
     return `<tr>
