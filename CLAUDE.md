@@ -154,6 +154,16 @@ This property has two sides with distinct pool rules. `getActiveSplit()` checks 
 **Commercial tenant equipment GL mapping:**
 Keywords "freezer sensor", "temperature sensor", "refrigeration alarm", "freezer alarm", "cooler alarm", "temp sensor", "freezer calibration", "sensor calibration", "temperature calibration", "freezer probe", "temp probe", "cold room sensor", "walk-in freezer", "walk-in cooler", "refrigeration system", "freezer temperature" map to `6100-3200` (Comm R&M – Misc. Repairs), 100% commercial, HST ITC recoverable. This is enforced as a MANDATORY OVERRIDE in the GL suggestion prompt (WORK TYPE HINTS section) and as a pool override in `getActiveSplit()`. The GL suggestion reason field must include a note to verify landlord vs tenant responsibility before posting.
 
+**EWRB / ESG / energy compliance reporting GL mapping:**
+Keywords "EWRB", "energy and water reporting", "benchmarking", "energy audit", "ESG submission", "ESG reporting", "environmental reporting", "net zero reporting", "carbon reporting", "greenhouse gas", "GHG reporting", "energy benchmarking", "water benchmarking", "historical data reporting", "Better Buildings", "energy disclosure", "Zenith Net Zero", "net-zero reporting" are regulatory/compliance invoices — no dedicated GL code exists yet:
+- Resi and condo pools: `7000-3400` (Residential – Admin Service) — temporary home
+- Comm pool: `6100-3200` (Comm R&M – Misc. Repairs) — temporary home
+- Allocation: `resiWeighted` — whole-building regulatory obligation spanning all pools
+- HST: comm and condo → ITC recoverable (post net); resi → HST inclusive non-recoverable
+- Flag: "Temporary GL home — EWRB/ESG/energy compliance costs pending dedicated compliance code. Resi/condo pool: 7000-3400 Admin Service. Comm pool: 6100-3200 Misc Repairs. Confirm with Controller."
+
+This is enforced as a MANDATORY OVERRIDE in the GL suggestion prompt (never use `6200-3200` Fire Alarm Inspections for compliance reporting). `scanInvoice()` also auto-selects the `resiWeighted` allocation schedule when any EWRB/ESG/benchmarking keyword appears in the description or notes field.
+
 **Wildlife / pest removal GL mapping:**
 Keywords "raccoon", "raccoon removal", "wildlife removal", "animal removal", "bird removal", "squirrel removal", "rat removal", "mouse removal", "rodent removal", "pest removal", "remove raccoon/animal/bird", "nest removal", "animal in vent/fan/exhaust", "critter removal", "wildlife trap", "animal trap" map to:
 - One-off emergency removal: `7000-3200` (Resi R&M – Misc.) resi / `6100-3200` (Comm R&M – Misc. Repairs) comm
