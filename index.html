@@ -898,6 +898,17 @@ Return null for any field not visible. Do not include text outside the JSON.`;
         $c('f-alloc').value='amenityBBQ';
         allocChanged();
       }
+      // Auto-select resiWeighted allocation for EWRB / ESG / energy compliance reporting
+      if(/ewrb|energy.*water.*report|benchmarking|esg.*report|esg.*submiss|energy audit|carbon report|ghg report|net.?zero report|historical data report|better buildings|energy disclosure|zenith net zero/i.test($c('f-desc').value+' '+($c('f-notes').value||''))){
+        const allocSel=$c('f-alloc');
+        for(let i=0;i<allocSel.options.length;i++){
+          if(allocSel.options[i].value==='resiWeighted'||allocSel.options[i].text.toLowerCase().includes('weighted')){
+            allocSel.selectedIndex=i;
+            allocChanged();
+            break;
+          }
+        }
+      }
       const propLabel=PROPS[d.detectedProperty].label;
       $c('scan-status').innerHTML=`<span class="scan-pill done">✓ Scanned — ${propLabel} — confirm or change</span>`;
       toast(`Property auto-detected: ${propLabel} — confirm or change`,'ok');
@@ -1263,6 +1274,13 @@ SERVICE UNIT: ${unitCtx}
      CRITICAL: Do NOT use 6100-2600 (Garage and Parking) for pest/wildlife removal — that code is for garage doors, asphalt, and parking infrastructure only.
      MANDATORY OVERRIDE: If ANY wildlife/animal/pest removal keyword appears, you MUST return 6100-3200 (comm one-off) or 7000-3200 (resi one-off) as the primary code. Never return an HVAC, ventilation, or garage/parking code for pest/wildlife removal work.
      NOTE TO INCLUDE: "Wildlife/pest removal from [location] — one-off emergency service call. If commercial tenant space, flag for CAM recovery at year-end reconciliation."
+   • "EWRB", "energy and water reporting", "benchmarking", "energy audit", "ESG submission", "ESG reporting", "environmental reporting", "net zero reporting", "carbon reporting", "greenhouse gas", "GHG reporting", "energy benchmarking", "water benchmarking", "historical data reporting", "regulatory compliance reporting", "Better Buildings", "energy disclosure", "Zenith Net Zero", "net-zero reporting" = regulatory compliance reporting — temporary GL home pending dedicated code:
+     PRIMARY: 7000-3400 (Residential – Admin Service) for resi and condo pools
+     COMM: 6100-3200 (R&M – Misc. Repairs) for commercial pool
+     ALLOCATION: resiWeighted — this is a whole-building regulatory obligation covering resi, condo, and comm pools
+     HST: commercial and condo → ITC recoverable, post net. Residential → HST inclusive non-recoverable.
+     FLAG TO INCLUDE: "Temporary GL home — EWRB/ESG/energy compliance costs pending dedicated compliance code. Resi/condo pool: 7000-3400 Admin Service. Comm pool: 6100-3200 Misc Repairs. Confirm with Controller."
+     MANDATORY OVERRIDE: If ANY EWRB/ESG/energy audit/benchmarking keyword appears, you MUST return 7000-3400 as primary with resiWeighted allocation. Never use 6200-3200 (Fire Alarm Inspections) for compliance reporting.
    • "graffiti", "graffiti removal", "remove graffiti", "paint over graffiti", "vandalism repair", "graffiti cleanup", "remove spray paint", "spray paint on wall" = exterior building surface → 7000-3050 resi (Exterior/Roof) or 6100-2200 comm (Exterior/Roof)
      CRITICAL: Do NOT use 7000-3110 (In-Suite Misc) for graffiti. Graffiti is always an exterior surface issue regardless of which wall or surface is affected.
      MANDATORY OVERRIDE: If ANY graffiti keyword appears anywhere in the description, you MUST return 7000-3050 (resi) or 6100-2200 (comm) as the primary code. Returning any other code for graffiti is an error.
